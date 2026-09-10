@@ -1,6 +1,7 @@
 ---
 name: archsvg
-description: 面向开发者的专业图形生成管线，把结构化图描述（IR JSON）渲染为静态 SVG 并对构图做 15 项机械验证。支持架构图、系统拓扑、流程图、Pipeline、时序图、调用链、决策树、演进路线、并列对比图；自动布局、零 JS、明暗双模、可嵌入 Markdown 与文档系统。Use when 需要画/生成/重画 架构图、流程图、时序图、状态流转、决策树，要把 Mermaid 或文字描述转成静态 SVG，或要验证已有图的构图质量。
+description: This skill should be used when the user asks to create, redraw, or validate a professional diagram — architecture, system topology, flowchart, pipeline, sequence diagram, decision tree, state flow, or comparison (架构图 / 拓扑图 / 流程图 / 时序图 / 决策树). Accepts IR JSON, Markdown, or plain prose as input and renders one self-contained static SVG with automatic layout, light/dark theming, zero JavaScript, and 15 composition checks. Also converts Mermaid or prose into static SVG. Not for raster images or freeform artwork.
+agent_created: true
 ---
 
 # archsvg —— IR JSON → 静态 SVG 渲染 + 机械验证
@@ -68,11 +69,8 @@ archsvg render   <type> <input.json> <output.svg> [--quality standard|showcase] 
 
 ### 退出码
 
-| 码 | 含义 |
-|:---:|:---|
-| `0` | 通过（doctor 全绿 / validate 通过 / render 通过并产出） |
-| `1` | 验证失败（schema 不合法 / 检查项有 fail；render 时不产出文件） |
-| `2` | 用法错误（未知命令 / 未知类型 / 文件缺失 / JSON 解析失败） |
+`0` 通过 ／ `1` 验证失败（`render` 时不产出文件）／ `2` 用法错误。
+完整含义表见 `references/diagram-contract.md`。
 
 ## 输出要求（交给调用方）
 
