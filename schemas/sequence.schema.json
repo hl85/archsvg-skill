@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "sequence.schema.json",
+  "title": "sequence 图 IR 契约（时序图）",
+  "description": "描述时序图（参与者生命线 + 消息）。common.schema.json 通过相对 $ref 提供 role/id/meta 定义（校验器需支持相对 $ref 解析）。participants 必填 2–8 个；messages 必填，kind 枚举 sync/async/return/self（注意与 edgeKind 不同，含 self 不含 data/fallback），label 必填以保证消息语义。约束：messages 最多 24 条。additionalProperties:false。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "type", "meta", "participants", "messages"],
+  "properties": {
+    "schema_version": {
+      "description": "契约版本常量，固定为 1。",
+      "type": "integer",
+      "enum": [1]
+    },
+    "type": {
+      "description": "图类型，sequence 固定为 \"sequence\"。",
+      "type": "string",
+      "enum": ["sequence"]
+    },
+    "meta": {
+      "$ref": "common.schema.json#/$defs/meta",
+      "description": "图元信息（title 必填）。"
+    },
+    "participants": {
+      "description": "参与者数组（必填，2–8 个）。",
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label", "role"],
+        "properties": {
+          "id": { "$ref": "common.schema.json#/$defs/id" },
+          "label": { "type": "string", "description": "参与者名，如 Client / API / Cache / DB。" },
+          "role": { "$ref": "common.schema.json#/$defs/role" }
+        }
+      }
+    },
+    "messages": {
+      "description": "消息数组（必填，至少 1 条，最多 24 条）。",
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 24,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["from", "to", "label", "kind"],
+        "properties": {
+          "from": { "$ref": "common.schema.json#/$defs/id" },
+          "to": { "$ref": "common.schema.json#/$defs/id" },
+          "label": { "type": "string", "description": "消息语义标签（必填），如「HTTP GET /products/42」「MISS 未命中」。" },
+          "kind": {
+            "type": "string",
+            "description": "消息种类：sync=同步调用；async=异步消息；return=返回；self=自调用（参与者自身回环）。",
+            "enum": ["sync", "async", "return", "self"]
+          }
+        }
+      }
+    }
+  }
+}

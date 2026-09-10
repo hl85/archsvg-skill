@@ -1,0 +1,78 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "flow.schema.json",
+  "title": "flow 图 IR 契约（流程图 / 演进路线图）",
+  "description": "描述流程/决策/演进路线图。common.schema.json 通过相对 $ref 提供 role/edgeKind/id/meta 定义（校验器需支持相对 $ref 解析）。nodes 的 kind 必填（start/step/decision/terminal）；stages 为演进阶段带（可选）。约束：nodes 1–24 个，edges 最多 48 条。additionalProperties:false。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "type", "meta", "nodes"],
+  "properties": {
+    "schema_version": {
+      "description": "契约版本常量，固定为 1。",
+      "type": "integer",
+      "enum": [1]
+    },
+    "type": {
+      "description": "图类型，flow 固定为 \"flow\"。",
+      "type": "string",
+      "enum": ["flow"]
+    },
+    "meta": {
+      "$ref": "common.schema.json#/$defs/meta",
+      "description": "图元信息（title 必填）。"
+    },
+    "stages": {
+      "description": "演进阶段带（可选），用于演进路线图，每个阶段一个标签。",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label"],
+        "properties": {
+          "id": { "$ref": "common.schema.json#/$defs/id" },
+          "label": { "type": "string", "description": "阶段标题，如「V1 基础版」。" },
+          "role": { "$ref": "common.schema.json#/$defs/role", "description": "阶段强调角色（可选）。" }
+        }
+      }
+    },
+    "nodes": {
+      "description": "节点数组（必填，至少 1 个，最多 24 个）。kind 必填。",
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 24,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label", "role", "kind"],
+        "properties": {
+          "id": { "$ref": "common.schema.json#/$defs/id" },
+          "label": { "type": "string", "description": "节点主标签。" },
+          "role": { "$ref": "common.schema.json#/$defs/role" },
+          "sublabel": { "type": "string", "description": "节点副标签（可选）。" },
+          "kind": {
+            "type": "string",
+            "description": "节点种类：start=起点；step=步骤；decision=判定；terminal=终点。",
+            "enum": ["start", "step", "decision", "terminal"]
+          },
+          "stage": { "$ref": "common.schema.json#/$defs/id", "description": "归属的 stage.id（可选），用于演进路线图分列。" }
+        }
+      }
+    },
+    "edges": {
+      "description": "连线数组（可选，最多 48 条）。fallback 常用于「校验失败回到执行」等回边。",
+      "type": "array",
+      "maxItems": 48,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["from", "to"],
+        "properties": {
+          "from": { "$ref": "common.schema.json#/$defs/id" },
+          "to": { "$ref": "common.schema.json#/$defs/id" },
+          "label": { "type": "string", "description": "连线标签（可选）。" },
+          "kind": { "$ref": "common.schema.json#/$defs/edgeKind" }
+        }
+      }
+    }
+  }
+}

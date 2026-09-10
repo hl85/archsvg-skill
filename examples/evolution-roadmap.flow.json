@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "type": "flow",
+  "meta": {
+    "title": "客服 Agent 架构演进路线（S0 → S4）",
+    "caption": "图 8-1 · 客服 Agent 五档演进路径与驱动力",
+    "locale": "zh-CN",
+    "viewBox": [800, 500]
+  },
+  "stages": [
+    { "id": "s0", "label": "S0 能用", "role": "neutral" },
+    { "id": "s1", "label": "S1 可控", "role": "control" },
+    { "id": "s2", "label": "S2 多源", "role": "capability" },
+    { "id": "s3", "label": "S3 并行", "role": "capability" },
+    { "id": "s4", "label": "S4 好用", "role": "interaction" }
+  ],
+  "nodes": [
+    { "id": "n0", "label": "单轮问答", "sublabel": "Prompt 直连 LLM，无状态", "role": "neutral", "kind": "start", "stage": "s0" },
+    { "id": "n1", "label": "计划-执行拆分", "sublabel": "Plan-Execute + 显式状态", "role": "control", "kind": "step", "stage": "s1" },
+    { "id": "n2", "label": "多路检索融合", "sublabel": "向量 + BM25 混合召回", "role": "capability", "kind": "step", "stage": "s2" },
+    { "id": "n3", "label": "Orchestrator-Worker", "sublabel": "子任务并行调度", "role": "capability", "kind": "step", "stage": "s3" },
+    { "id": "n4", "label": "评估闭环 + 可观测", "sublabel": "Langfuse 追踪 + 回归评测", "role": "interaction", "kind": "terminal", "stage": "s4" }
+  ],
+  "edges": [
+    { "from": "n0", "to": "n1", "label": "方向漂移、执行失控", "kind": "sync" },
+    { "from": "n1", "to": "n2", "label": "来源单一、低质量源污染", "kind": "sync" },
+    { "from": "n2", "to": "n3", "label": "上下文装不下、串行慢", "kind": "sync" },
+    { "from": "n3", "to": "n4", "label": "行为不可观测、回归无保障", "kind": "sync" }
+  ]
+}

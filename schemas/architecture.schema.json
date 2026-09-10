@@ -1,0 +1,73 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "architecture.schema.json",
+  "title": "architecture 图 IR 契约（拓扑/分层架构图）",
+  "description": "描述组件/分层拓扑架构图。common.schema.json 通过相对 $ref 提供 role/edgeKind/id/meta 定义（校验器需支持相对 $ref 解析）。约束：nodes 必填且 1–24 个，edges 最多 48 条。additionalProperties:false 防止作者写入未定义字段。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "type", "meta", "nodes"],
+  "properties": {
+    "schema_version": {
+      "description": "契约版本常量，固定为 1。",
+      "type": "integer",
+      "enum": [1]
+    },
+    "type": {
+      "description": "图类型，architecture 固定为 \"architecture\"。",
+      "type": "string",
+      "enum": ["architecture"]
+    },
+    "meta": {
+      "$ref": "common.schema.json#/$defs/meta",
+      "description": "图元信息（title 必填）。"
+    },
+    "groups": {
+      "description": "分组（背景框），用于把若干节点归入同一逻辑层。",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label", "role"],
+        "properties": {
+          "id": { "$ref": "common.schema.json#/$defs/id" },
+          "label": { "type": "string", "description": "分组标题，如「接入层」。" },
+          "role": { "$ref": "common.schema.json#/$defs/role" }
+        }
+      }
+    },
+    "nodes": {
+      "description": "节点数组（必填，至少 1 个，最多 24 个）。",
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 24,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label", "role"],
+        "properties": {
+          "id": { "$ref": "common.schema.json#/$defs/id" },
+          "label": { "type": "string", "description": "节点主标签，用真实类名/技术名，如 CsvProductLoader。" },
+          "role": { "$ref": "common.schema.json#/$defs/role" },
+          "sublabel": { "type": "string", "description": "节点副标签（可选），如文件名或包名。" },
+          "group": { "$ref": "common.schema.json#/$defs/id", "description": "归属的 group.id（可选）。" }
+        }
+      }
+    },
+    "edges": {
+      "description": "连线数组（可选，最多 48 条）。",
+      "type": "array",
+      "maxItems": 48,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["from", "to"],
+        "properties": {
+          "from": { "$ref": "common.schema.json#/$defs/id" },
+          "to": { "$ref": "common.schema.json#/$defs/id" },
+          "label": { "type": "string", "description": "连线标签（可选）。" },
+          "kind": { "$ref": "common.schema.json#/$defs/edgeKind" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "type": "sequence",
+  "meta": {
+    "title": "缓存未命中的请求时序",
+    "caption": "图 4-1 · 缓存未命中请求时序（实测 p99 18ms，命中率 92%）",
+    "locale": "zh-CN",
+    "viewBox": [800, 500]
+  },
+  "participants": [
+    { "id": "client", "label": "Client", "role": "interaction" },
+    { "id": "api", "label": "API", "role": "control" },
+    { "id": "cache", "label": "Cache", "role": "capability" },
+    { "id": "db", "label": "DB", "role": "neutral" }
+  ],
+  "messages": [
+    { "from": "client", "to": "api", "label": "HTTP GET /products/42", "kind": "sync" },
+    { "from": "api", "to": "cache", "label": "GET product:42", "kind": "sync" },
+    { "from": "cache", "to": "api", "label": "MISS 未命中", "kind": "return" },
+    { "from": "api", "to": "db", "label": "SELECT * FROM products WHERE id=42", "kind": "sync" },
+    { "from": "db", "to": "api", "label": "行记录 1 条", "kind": "return" },
+    { "from": "api", "to": "cache", "label": "SETEX product:42 300s", "kind": "async" },
+    { "from": "api", "to": "client", "label": "200 OK JSON", "kind": "return" }
+  ]
+}

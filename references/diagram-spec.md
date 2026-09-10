@@ -1,0 +1,132 @@
+# archsvg 制图规范（详版）
+
+面向 Agent 的制图规范：IR 字段完整说明、`role` 三域语义、三种类型布局规则、创作不变量、修复优先级。
+
+> 所有路径用 `import.meta.url` 解析，CLI 支持任意 cwd 调用。坐标**一律由布局器生成**，IR 中禁止出现 `x`/`y`/`pos`。
+
+---
+
+## 1. IR 顶层字段
+
+| 字段 | 类型 | 必填 | 说明 |
+|:---|:---|:---:|:---|
+| `schema_version` | `1` | ✓ | 常量，当前固定为 `1` |
+| `type` | `"architecture"\|"flow"\|"sequence"` | ✓ | 图类型，**必须**与命令 `<type>` 一致 |
+| `meta.title` | string | ✓ | 主标题 |
+| `meta.caption` | string | 推荐 | 图题，形如 `图 X-N · 标题`（showcase 的 `caption_present` 校验此格式） |
+| `meta.locale` | `"zh-CN"` | — | 语言标记 |
+| `meta.viewBox` | `[number, number]` | — | 画布尺寸，默认 `[800, 500]` |
+
+JSON Schema 是唯一契约源（`schemas/*.schema.json`），`lib/schema.mjs` 是数据驱动的子集校验器。
+
+---
+
+## 2. `role` 三域语义
+
+`role` 是 IR 的**语义核心**（不是组件类型）。五值：
+
+| `role` | 含义 | 亮色 fill / stroke / text | 暗色 fill / stroke / text |
+|:---|:---|:---|:---|
+| `control` | 编排 / 调度 / 状态 | `#fdf4ff` / `#c084fc` / `#7e22ce` | `rgba(168,85,247,.18)` / `#c084fc` / `#e9d5ff` |
+| `capability` | 工具 / 算子 / 外部系统 | `#f0fdf4` / `#4ade80` / `#166534` | `rgba(74,222,128,.16)` / `#4ade80` / `#bbf7d0` |
+| `interaction` | 协议 / 接口 / 数据契约 | `#eff6ff` / `#60a5fa` / `#1e40af` | `rgba(96,165,250,.16)` / `#60a5fa` / `#dbeafe` |
+| `warn` | 警告 / 失败 / 拦截 | `#fef2f2` / `#ef4444` / `#b91c1c` | `rgba(239,68,68,.16)` / `#f87171` / `#fecaca` |
+| `neutral` | 中性 / 说明 | `#f8fafc` / `#94a3b8` / `#475569` | `rgba(148,163,184,.14)` / `#94a3b8` / `#cbd5e1` |
+
+- 画布亮 `#f8fafc` / 暗 `#0f172a`；正文亮 `#0f172a` / 暗 `#e2e8f0`；辅助文字亮 `#64748b` / 暗 `#94a3b8`；箭头亮 `#94a3b8` / 暗 `#64748b`。
+- **对比度约束**：正文/节点文字与底色在明、暗两模式下均 **≥ 4.5:1**（`theme_readable` 检查）。
+
+选用指南：
+- 一个节点只承担一种主语义 → 选最贴切的 `role`，不要因为配色好看乱用。
+- 颜色即信息：读者按紫/绿/蓝/红/灰快速区分「控制 / 能力 / 交互 / 警告 / 中性」。
+
+---
+
+## 3. 三种类型的 IR 结构
+
+### 3.1 architecture
+
+```
+groups?: [{ id, label, role }]            # 层/边界/并列分组，role 决定分组边框色
+nodes:   [{ id, label, role, sublabel?, group? }]
+edges?:  [{ from, to, label?, kind? }]
+```
+
+- `group` 引用 `groups[].id`，节点落入对应分组框。
+- 对比图：用多个 `groups` 并列表达对照（如「旧方案 vs 新方案」）。
+
+### 3.2 flow
+
+```
+stages?: [{ id, label, role? }]           # 阶段带（演进路线用）
+nodes:   [{ id, label, role, sublabel?, kind: "start"|"step"|"decision"|"terminal", stage? }]
+edges?:  [{ from, to, label?, kind? }]
+```
+
+- `node.kind`：
+  - `start` 起点（圆角/椭圆）
+  - `step` 普通步骤
+  - `decision` 决策（菱形，必有 ≥2 出边，建议带「是/否」标签）
+  - `terminal` 终点
+- 演进路线：用 `stages` + `node.stage` 表达时间/版本推进。
+
+### 3.3 sequence
+
+```
+participants: [{ id, label, role }]
+messages:     [{ from, to, label, kind: "sync"|"async"|"return"|"self" }]
+```
+
+- 无坐标：参与者纵向生命线由布局器生成，消息沿生命线走正交路由。
+- `message.kind`：`self` 为自调用（回环）。
+
+### 3.4 通用枚举
+
+- `edge.kind`：`sync` | `async` | `data` | `fallback` | `return`
+  - `data` 数据流向、`fallback` 降级/重试、`return` 返回、`async` 异步、`sync` 同步调用。
+
+---
+
+## 4. 布局规则（自动，禁止手写坐标）
+
+| 类型 | 布局策略 |
+|:---|:---|
+| architecture | `groups` 横向或纵向平铺为容器框；`nodes` 在组内网格排布；`edges` 走正交路由（先出框、再走主干通道、再入框） |
+| flow | 主干纵向单链；`decision` 分支向两侧展开；`stages` 作为顶部阶段带 |
+| sequence | 参与者等距横向排布，生命线贯穿；消息按出现顺序自上而下 |
+
+布局器保证：
+- 节点两两间距 ≥ 8px（`node_overlap`）；
+- 边首尾段垂直于端点 `fromSide/toSide`（`orthogonal_arrows`）；
+- 标签与任何边/盒子净空 ≥ 14px（`label_route_clearance`）。
+
+---
+
+## 5. 创作不变量
+
+1. 一条清晰主路径。
+2. 节点 ≤ 24，超限必须拆图。
+3. 边标签是语义数据，不能随便删。
+4. 先删低价值边，再上分组/布局疏解。
+5. 不为通过检查而改语义。
+
+## 6. 修复优先级（先动什么后动什么）
+
+检查项失败时，**按以下顺序**定点修复，避免在错误层级反复横跳：
+
+1. **schema 层**（`validateSchema` 诊断）：先修 JSON 结构/字段类型/枚举/必填——这是根因，结构错后面全错。
+2. **构图 9 项**（按影响面从大到小）：
+   1. `finite_svg` —— 出现 NaN/Infinity，通常是 IR 缺字段导致布局器算崩。
+   2. `node_overlap` —— 节点太多/分组太挤 → 拆组、减节点、或拆图。
+   3. `relationship_crossings` —— 边穿越无关节点 → 改边起止、加分组、调布局。
+   4. `label_route_clearance` —— 标签太挤 → 缩短标签文案 / 调整（靠布局器，必要时减边）。
+   5. `orthogonal_arrows` / `relationship_corridors` / `container_border_runs` / `route_rhythm` —— 路由质量问题，优先通过删冗余边、加分组解决。
+   6. `legend_clearance` —— 图例压节点 → 布局器自动避让，异常时减节点或调 `viewBox`。
+3. **课程专项 6 项**：
+   - `no_ascii` / `no_base64` —— 产物层，渲染器已保证零残留；若触发说明渲染器被改，回查 `lib/render.mjs`。
+   - `ref_reachable` —— 课程目录相对引用缺失，补图或改 md 引用。
+   - `caption_present` —— 补 `meta.caption` 为 `图 X-N · 标题` 格式。
+   - `theme_readable` —— 对比度不足，回查 `role` 选用与 `lib/theme.mjs` token。
+   - `dual_track_parity` —— 仅 `--track-pair` 启用，双轨图数量/文件名对齐。
+
+> 每轮修复后重跑 `validate --quality showcase`，记录失败数；连续两轮未降低 → 停止并如实报告（见 SKILL.md 有界重试）。

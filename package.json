@@ -1,0 +1,1 @@
+{ "name": "archsvg", "version": "0.1.0", "private": true, "type": "module", "bin": { "archsvg": "./bin/archsvg.mjs" } }
