@@ -13,7 +13,7 @@ agent_created: true
 ## 快速创作路径
 
 1. **选类型**：按下方「类型路由表」确定 `architecture` / `flow` / `sequence`。
-2. **读 schema + example**：`schemas/<type>.schema.json` 与 `examples/<type>.json` 各一份。
+2. **读 schema + example**：`schemas/<type>.schema.json` 与 `examples/<type>.json` 各一份；成品级参考（含已渲染 SVG、覆盖全部类型与变体）见 `samples/`。
 3. **写 IR**：只填语义（`role` / `label` / `edges`），**禁止手写坐标**——坐标由 `lib/layout.mjs` 自动布局。
 4. **validate**：`archsvg validate <type> <ir.json> --quality showcase`。
 5. **按诊断修**：回执里的 `diagnostics[].supportedFixes` 是定点修复建议，逐条改 IR，**不要为了让检查通过而裁剪语义**。

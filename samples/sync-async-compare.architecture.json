@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "type": "architecture",
+  "meta": {
+    "title": "同步阻塞 vs 事件驱动的下单链路",
+    "caption": "图 1-2 · 下单链路对比：同步阻塞 vs 事件驱动（并列对比变体）",
+    "locale": "zh-CN",
+    "viewBox": [1100, 520]
+  },
+  "groups": [
+    { "id": "sync-path", "label": "同步链路 · 受理即串行执行", "role": "interaction" },
+    { "id": "async-path", "label": "异步链路 · 受理与执行解耦", "role": "capability" }
+  ],
+  "nodes": [
+    { "id": "s-api", "label": "ApiServer", "sublabel": "同步下单", "role": "control", "group": "sync-path" },
+    { "id": "s-order", "label": "OrderService", "sublabel": "事务内建单", "role": "capability", "group": "sync-path" },
+    { "id": "s-payment", "label": "PaymentService", "sublabel": "同步扣款·阻塞主流程", "role": "warn", "group": "sync-path" },
+    { "id": "s-coupon", "label": "CouponService", "sublabel": "同步核销·阻塞主流程", "role": "warn", "group": "sync-path" },
+    { "id": "a-api", "label": "ApiServer", "sublabel": "受理即返回", "role": "control", "group": "async-path" },
+    { "id": "a-mq", "label": "EventBus", "sublabel": "订单事件", "role": "interaction", "group": "async-path" },
+    { "id": "a-order", "label": "OrderConsumer", "sublabel": "消费·建单", "role": "capability", "group": "async-path" },
+    { "id": "a-payment", "label": "PaymentConsumer", "sublabel": "消费·扣款", "role": "capability", "group": "async-path" },
+    { "id": "a-notify", "label": "NotifyConsumer", "sublabel": "消费·通知", "role": "neutral", "group": "async-path" }
+  ],
+  "edges": [
+    { "from": "s-api", "to": "s-order", "label": "下单", "kind": "sync" },
+    { "from": "s-order", "to": "s-payment", "label": "扣款阻塞", "kind": "sync" },
+    { "from": "s-order", "to": "s-coupon", "label": "核销阻塞", "kind": "sync" },
+    { "from": "a-api", "to": "a-mq", "label": "发布订单事件", "kind": "async" },
+    { "from": "a-mq", "to": "a-order", "label": "消费", "kind": "async" },
+    { "from": "a-mq", "to": "a-payment", "label": "消费", "kind": "async" },
+    { "from": "a-mq", "to": "a-notify", "label": "消费", "kind": "async" }
+  ]
+}

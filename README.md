@@ -153,7 +153,8 @@ archsvg/
 │       ├── composition.mjs      # 构图检查 9 项
 │       └── document.mjs         # 文档集成检查 6 项
 ├── schemas/{common,architecture,flow,sequence}.schema.json
-├── examples/                    # 各类型示例 IR
+├── examples/                    # 各类型最小示例 IR（Schema 对照用）
+├── samples/                     # 成品样例画廊（IR + 已渲染 SVG，覆盖全部类型与变体）
 └── references/
     ├── diagram-spec.md          # IR 规范、role 语义、布局规则、修复优先级
     └── diagram-contract.md      # 诊断 / 回执契约、15 项检查逐项说明

@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "type": "flow",
+  "meta": {
+    "title": "线上告警分级决策树",
+    "caption": "图 2-2 · 线上告警分级决策树（P0 / P1 / P2 三级出口）",
+    "locale": "zh-CN",
+    "viewBox": [1080, 540]
+  },
+  "nodes": [
+    { "id": "alert", "label": "告警触发", "sublabel": "AlertManager", "role": "warn", "kind": "start" },
+    { "id": "scope", "label": "影响面 ≥ 30%", "sublabel": "ScopeJudge", "role": "control", "kind": "decision" },
+    { "id": "core", "label": "核心链路受损", "sublabel": "PathJudge", "role": "control", "kind": "decision" },
+    { "id": "p0", "label": "P0 电话 + 拉群", "sublabel": "5 分钟响应", "role": "warn", "kind": "terminal" },
+    { "id": "p1", "label": "P1 值班 IM 通知", "sublabel": "30 分钟响应", "role": "interaction", "kind": "terminal" },
+    { "id": "p2", "label": "P2 工单 + 邮件", "sublabel": "次工作日处理", "role": "neutral", "kind": "terminal" }
+  ],
+  "edges": [
+    { "from": "alert", "to": "scope", "label": "评估", "kind": "sync" },
+    { "from": "scope", "to": "p0", "label": "是", "kind": "sync" },
+    { "from": "scope", "to": "core", "label": "否", "kind": "sync" },
+    { "from": "core", "to": "p1", "label": "是", "kind": "sync" },
+    { "from": "core", "to": "p2", "label": "否", "kind": "sync" }
+  ]
+}
