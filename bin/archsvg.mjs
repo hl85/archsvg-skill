@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-// archsvg CLI 入口 —— 把 IR JSON 渲染为课程/文档友好的静态 SVG，并做机械验证。
+// archsvg CLI 入口 —— 把 IR JSON 渲染为可嵌入文档的静态 SVG，并做机械验证。
 //
-// 设计铁律（见实施计划 §2.1）：
+// 设计铁律：
 //   - 所有路径用 import.meta.url 相对解析，支持任意 cwd 调用；
 //   - 运行时零 npm 依赖；
-//   - 不 import course-skill 任何文件。
+//   - 自包含：不依赖任何外部 skill，IR 语义不耦合具体业务领域。
 //
 // 退出码：0 通过 / 1 验证失败 / 2 用法错误。
 
@@ -25,7 +25,7 @@ const VENDOR_FILES = ['geometry.mjs', 'diagnostics.mjs'];
 const importFrom = (rel) => import(new URL(rel, BIN_URL).href);
 
 const TYPES = new Set(['architecture', 'flow', 'sequence']);
-const STANDARD_COURSE = new Set(['no_ascii', 'no_base64', 'ref_reachable']);
+const STANDARD_DOCUMENT = new Set(['no_ascii', 'no_base64', 'ref_reachable']);
 
 // ---- 通用错误 ----
 class UsageError extends Error {
@@ -51,6 +51,13 @@ function parseArgs(args) {
       i += 1;
     } else if (a.startsWith('--quality=')) {
       flags.quality = a.slice('--quality='.length);
+    } else if (a === '--variant-pair') {
+      const v = args[i + 1];
+      if (!v) throw new UsageError('--variant-pair 需要一个对比根目录路径');
+      flags.variantPair = v;
+      i += 1;
+    } else if (a.startsWith('--variant-pair=')) {
+      flags.variantPair = a.slice('--variant-pair='.length);
     } else if (a.startsWith('--')) {
       throw new UsageError(`未知选项：${a}`);
     } else {
@@ -95,21 +102,21 @@ function readInput(inputPath) {
 // =====================================================================
 async function loadLib() {
   const [{ validateSchema }, { layout }, { renderSvg }, { runCompositionChecks },
-    { runCourseChecks }] = await Promise.all([
+    { runDocumentChecks }] = await Promise.all([
     importFrom('../lib/schema.mjs'),
     importFrom('../lib/layout.mjs'),
     importFrom('../lib/render.mjs'),
     importFrom('../lib/checks/composition.mjs'),
-    importFrom('../lib/checks/course.mjs'),
+    importFrom('../lib/checks/document.mjs'),
   ]);
-  return { validateSchema, layout, renderSvg, runCompositionChecks, runCourseChecks };
+  return { validateSchema, layout, renderSvg, runCompositionChecks, runDocumentChecks };
 }
 
-// 跑「全部检查」：schema → layout → 9 构图 → 按档位选课程专项。
+// 跑「全部检查」：schema → layout → 9 构图 → 按档位选文档集成专项。
 // 入参 svgPath：render 时为已渲染的临时 SVG；validate 时为 null（ASCII/base64 项自动跳过）。
 // 返回 { schemaOk, diagnostics, checks, layoutOk }
-async function runPipeline({ ir, type, svgPath, profile }) {
-  const { validateSchema, layout, runCompositionChecks, runCourseChecks } = await loadLib();
+async function runPipeline({ ir, type, svgPath, profile, variantPair = null }) {
+  const { validateSchema, layout, runCompositionChecks, runDocumentChecks } = await loadLib();
 
   // 1) schema
   const schemaRes = validateSchema(ir);
@@ -136,15 +143,18 @@ async function runPipeline({ ir, type, svgPath, profile }) {
   // 3) 9 项构图
   const composition = runCompositionChecks(ir, layoutResult, profile);
 
-  // 4) 6 项课程专项 → 按档位筛选
-  const courseAll = runCourseChecks({ ir, svgPath, courseDir: null, options: {} });
-  const course = profile === 'showcase'
-    ? courseAll
-    : courseAll.filter((c) => STANDARD_COURSE.has(c.name));
+  // 4) 6 项文档集成专项 → 按档位筛选
+  const docAll = runDocumentChecks({
+    ir, svgPath, docDir: null,
+    options: { compareDir: variantPair },
+  });
+  const doc = profile === 'showcase'
+    ? docAll
+    : docAll.filter((c) => STANDARD_DOCUMENT.has(c.name));
 
   return {
     schemaOk: true, layoutOk: true, diagnostics: [],
-    checks: [...composition, ...course],
+    checks: [...composition, ...doc],
   };
 }
 
@@ -241,7 +251,7 @@ async function cmdValidate(args, command) {
   const type = positional[0];
   const input = positional[1];
   if (!type || !input) {
-    throw new UsageError('用法：archsvg validate <type> <input.json> [--quality standard|showcase] [--json]');
+    throw new UsageError('用法：archsvg validate <type> <input.json> [--quality standard|showcase] [--variant-pair <dir>] [--json]');
   }
   if (!TYPES.has(type)) {
     throw new UsageError(`未知的图类型「${type}」\n支持：architecture / flow / sequence`);
@@ -263,7 +273,7 @@ async function cmdValidate(args, command) {
     });
   }
 
-  const result = await runPipeline({ ir, type, svgPath: null, profile });
+  const result = await runPipeline({ ir, type, svgPath: null, profile, variantPair: flags.variantPair ?? null });
   return finishValidate(command, type, input, profile, flags.json, result);
 }
 
@@ -288,7 +298,7 @@ async function cmdRender(args) {
   const input = positional[1];
   const output = positional[2];
   if (!type || !input || !output) {
-    throw new UsageError('用法：archsvg render <type> <input.json> <output.svg> [--quality standard|showcase] [--json]');
+    throw new UsageError('用法：archsvg render <type> <input.json> <output.svg> [--quality standard|showcase] [--variant-pair <dir>] [--json]');
   }
   if (!TYPES.has(type)) {
     throw new UsageError(`未知的图类型「${type}」\n支持：architecture / flow / sequence`);
@@ -313,7 +323,7 @@ async function cmdRender(args) {
 
   // 1) schema + layout + 9 构图（不依赖 SVG 文件）
   const { renderSvg } = await loadLib();
-  const pre = await runPipeline({ ir, type, svgPath: null, profile });
+  const pre = await runPipeline({ ir, type, svgPath: null, profile, variantPair: flags.variantPair ?? null });
   if (!pre.schemaOk || !pre.layoutOk) {
     if (flags.json) {
       process.stdout.write(JSON.stringify(
@@ -347,7 +357,7 @@ async function cmdRender(args) {
   writeFileSync(tmp, svg, 'utf8');
 
   // 3) 完整跑全部检查（含针对实际 SVG 的 no_ascii / no_base64）
-  const full = await runPipeline({ ir, type, svgPath: tmp, profile });
+  const full = await runPipeline({ ir, type, svgPath: tmp, profile, variantPair: flags.variantPair ?? null });
   const s = summarize(full.checks);
 
   if (s.failed === 0) {
@@ -502,7 +512,7 @@ async function cmdDoctor() {
   // 4) lib 各模块可 import
   const libModules = [
     '../lib/theme.mjs', '../lib/layout.mjs', '../lib/render.mjs', '../lib/schema.mjs',
-    '../lib/checks/composition.mjs', '../lib/checks/course.mjs',
+    '../lib/checks/composition.mjs', '../lib/checks/document.mjs',
     '../lib/geometry.mjs', '../lib/diagnostics.mjs',
   ];
   for (const m of libModules) {
@@ -542,13 +552,13 @@ async function cmdDoctor() {
 // 入口分发
 // =====================================================================
 function printUsage() {
-  console.log(`archsvg —— 把 IR JSON 渲染为课程/文档友好的静态 SVG 并做机械验证
+  console.log(`archsvg —— 把 IR JSON 渲染为可嵌入文档的静态 SVG 并做机械验证
 
 用法：
   archsvg doctor                                            环境自检
   archsvg guide "<场景>"                                    推荐图类型
-  archsvg validate <type> <input.json> [--quality s|showcase] [--json]
-  archsvg render   <type> <input.json> <output.svg> [--quality s|showcase] [--json]
+  archsvg validate <type> <input.json> [--quality standard|showcase] [--variant-pair <dir>] [--json]
+  archsvg render   <type> <input.json> <output.svg> [--quality standard|showcase] [--variant-pair <dir>] [--json]
 
 类型：architecture | flow | sequence
 退出码：0 通过 / 1 验证失败 / 2 用法错误`);

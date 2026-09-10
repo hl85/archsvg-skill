@@ -1,97 +1,192 @@
 # archsvg
 
-把结构化图描述（IR JSON）渲染为**课程 / 文档友好**的静态 SVG，并对产物做机械验证。
+> 给开发者的专业图形生成管线：**IR JSON → 机械验证 → 静态 SVG**。
 
-archsvg 接收一份描述图结构的 JSON（IR，Intermediate Representation），自动布局并产出
-单文件 SVG；同时提供 schema 校验与构图质量检查，保证产出在飞书 / Obsidian 等文档环境中
-零 JS、零外部依赖、明/暗双模式可读。
+archsvg 让你用一份描述图结构的 JSON（IR，Intermediate Representation）表达架构图、流程图、
+时序图，由它负责自动布局与渲染，并在出图前做 15 项机械检查。产出是**单文件静态 SVG**，
+可直接嵌入 Markdown、文档系统或代码仓库。
 
-## 与 course-skill 的关系
+## 它解决什么问题
 
-- `course-skill` 是 archsvg 的**消费者之一**：课程生产链路用 archsvg 生成插图。
-- archsvg **不得反向依赖** `course-skill`：它不知道任何课程语义，只认 IR JSON。
-  本目录下的代码绝不 `import` 或引用 `course-skill` 的任何文件。
+让模型直接写 SVG 有三个绕不开的毛病：
 
-## 目录结构
+| 问题 | 后果 |
+|:---|:---|
+| 手写坐标 | 标签压线、连线穿越节点、间距失控，只能靠肉眼发现 |
+| 一次性输出 | 画错没有诊断，只能整体重来 |
+| 风格漂移 | 每次生成一个样，跨文档/跨仓库不一致 |
+
+archsvg 的做法是**让模型输出结构，而不是输出像素**：
 
 ```
-.agents/skills/archsvg/
-├── SKILL.md                      # 技能入口（由其他负责人创建）
-├── README.md                     # 本文件
-├── LICENSE                       # MIT
-├── THIRD_PARTY_NOTICES.md        # 第三方 vendored 代码声明
-├── package.json                  # { name, type: module, private: true }
-├── .gitignore
-├── bin/archsvg.mjs               # CLI 入口（由其他负责人创建）
-├── lib/
-│   ├── geometry.mjs              # vendor 自 archify（仅追加归属头，逻辑未改）
-│   ├── diagnostics.mjs           # vendor 自 archify（仅追加归属头，逻辑未改）
-│   ├── theme.mjs                 # 配色 token（自研，后建）
-│   ├── layout.mjs                # 自动布局（自研，后建）
-│   ├── render.mjs                # SVG 渲染（自研，后建）
-│   ├── schema.mjs                # 运行时 schema 校验（自研，后建）
-│   └── checks/{composition,course}.mjs  # 质量检查（自研，后建）
-├── schemas/{common,architecture,flow,sequence}.schema.json
-├── examples/                     # 每类型 1–2 个示例 IR
-└── references/{diagram-spec.md,diagram-contract.md}
+自然语言 / 代码理解
+      ↓
+  Typed JSON IR        ← 结构先行
+      ↓
+  Schema 校验           ← 字段合法性
+      ↓
+  构图检查（15 项）     ← 标签遮挡、连线穿越、走廊歧义、对比度…
+      ↓
+  渲染静态 SVG
 ```
 
-> 本 README 仅描述 archsvg 整体；`SKILL.md`、`bin/`、`schemas/`、`examples/`、
-> `references/` 及 `lib/` 下的自研模块由对应 subagent 并行负责。
+验证失败不是抛异常了事，而是返回**结构化诊断**：哪个节点、哪条边、违反哪条规则、
+实测多少、建议怎么修。据此改 IR 再跑，形成 `生成 → 验证 → 修复 → 交付` 的闭环。
 
-## 运行时要求
+## 三种图类型
 
-- **Node.js 18+**（仅用内置模块，零 npm 依赖）。
-- 所有源文件为 `.mjs`，不依赖 `package.json` 的 `type` 字段。
-- 路径一律用 `import.meta.url` 相对解析，**支持从任意 cwd 调用**。
+| 类型 | 适用场景 | 关键结构 |
+|:---|:---|:---|
+| `architecture` | 系统架构、分层、边界、组件拓扑、**并列对比** | `groups` + `nodes` + `edges` |
+| `flow` | Pipeline、业务流程、CI/CD、**决策树**、**演进路线** | `stages` + `nodes(kind)` + `edges` |
+| `sequence` | API 调用链、请求生命周期、异步追踪 | `participants` + `messages` |
 
-## CLI 用法
+> 对比图是 `architecture` 的分组变体，演进路线是 `flow` 的阶段（`stages`）变体，不单独立类型。
 
-命令（具体实现位于 `bin/archsvg.mjs`，契约见实施计划 §2.6）：
+## 语义色板
+
+节点颜色由 `role` 决定，语义固定、不随主题漂移：
+
+| `role` | 含义 | 色系 |
+|:---|:---|:---|
+| `control` | 编排 / 调度 / 状态 | 紫 |
+| `capability` | 工具 / 算子 / 外部系统 | 绿 |
+| `interaction` | 协议 / 接口 / 数据契约 | 蓝 |
+| `warn` | 警告 / 失败 / 拦截 | 橙红 |
+| `neutral` | 中性 / 说明 | 灰 |
+
+## 快速开始
+
+无需安装依赖，Clone 即可用：
 
 ```bash
-node bin/archsvg.mjs doctor                                  # 自检全部资产，全绿即通过
-node bin/archsvg.mjs guide "<场景>"                           # 给出 IR 编写指引
-node bin/archsvg.mjs validate <type> <input.json> [--quality standard|showcase] [--json]
-node bin/archsvg.mjs render   <type> <input.json> <output.svg> [--quality standard|showcase] [--json]
+node bin/archsvg.mjs doctor     # 环境自检，全绿打印 "archsvg is ready."
+node bin/archsvg.mjs guide "订单创建的服务调用链"
 ```
 
-- `<type>` ∈ `architecture` | `flow` | `sequence`。
-- 质量档位**只由 CLI `--quality` 决定**（不写进 IR）：`standard`（默认）与 `showcase`
-  （更严格的构图预算，含连线穿越、走廊歧义、边框借道等校验）。
+写一个 IR（完整字段见 `schemas/` 与 `examples/`）：
+
+```json
+{
+  "schema_version": 1,
+  "type": "architecture",
+  "meta": { "title": "缓存未命中的读路径", "caption": "图 3-1 · 读请求回溯源库" },
+  "nodes": [
+    { "id": "api",   "label": "API 服务", "role": "control" },
+    { "id": "cache", "label": "Redis",    "role": "capability" },
+    { "id": "db",    "label": "主库",     "role": "capability" }
+  ],
+  "edges": [
+    { "from": "api", "to": "cache", "label": "GET", "kind": "sync" },
+    { "from": "api", "to": "db",    "label": "回源", "kind": "fallback" }
+  ]
+}
+```
+
+验证并出图：
+
+```bash
+node bin/archsvg.mjs validate architecture demo.json --quality showcase
+node bin/archsvg.mjs render   architecture demo.json demo.svg --quality showcase --json
+```
+
+验证不通过时 `render` **绝不产出文件**。
+
+## CLI
+
+```bash
+archsvg doctor
+archsvg guide "<场景>"
+archsvg validate <type> <input.json> [--quality standard|showcase] [--json]
+archsvg render   <type> <input.json> <output.svg> [--quality standard|showcase] [--json]
+```
+
+- `<type>` ∈ `architecture` | `flow` | `sequence`
+- `--quality`：`standard` 12 项 / `showcase` 15 项（默认 `standard`）
+- `--json`：输出机器可读回执，含 `checks`、`composition.summary`、`artifact.sha256`
 
 退出码：
 
 | 码 | 含义 |
 |:---:|:---|
 | `0` | 通过 |
-| `1` | 验证失败 |
-| `2` | 用法错误 |
+| `1` | 验证失败（`render` 时不产出文件） |
+| `2` | 用法错误（未知类型 / 文件缺失 / JSON 解析失败） |
 
-`--json` 回执沿实施计划 §2.6 的契约结构返回，含 `schemaVersion`、`ok`、`command`、
-`type`、`checks`、`composition`、`artifact` 等字段。
+## 质量门禁
 
-## Vendor 说明
+**构图检查 9 项** —— 坐标有限性、节点重叠、连线穿越无关节点、标签净空、
+端点正交、走廊歧义、贴边借道、转折节奏、图例净空。
+
+**文档集成检查 6 项** —— ASCII 画图残留、base64 内嵌、Markdown 引用可达、
+图题规范、明暗双模对比度、多版本目录图资源一致性。
+
+有界重试：连续两轮修复未降低错误数即**停止并如实报告**未解决诊断。
+禁止以裁剪内容、缩小字号、隐藏溢出等手段伪造通过。
+
+## 产物特性
+
+- 单文件静态 SVG，**内联样式**，亮色优先 + `@media (prefers-color-scheme: dark)` 暗色自适应
+- **零 JS**、无 `foreignObject`、无外部字体，可在飞书 / Obsidian / GitHub 等环境正常渲染
+- 自动布局，**调用方不写坐标**；内容放不下时自动扩展画布，不压缩节点、不缩字号
+- 含 `<title>` / `<desc>` 无障碍信息
+- 单图通常 **< 15 KB**
+
+## 目录结构
+
+```
+archsvg/
+├── SKILL.md                     # 技能入口（供 Agent 发现与加载）
+├── README.md                    # 本文件
+├── LICENSE                      # MIT
+├── THIRD_PARTY_NOTICES.md       # 第三方 vendored 代码声明
+├── package.json                 # { name, type: module, private: true }
+├── bin/archsvg.mjs              # CLI 入口
+├── lib/
+│   ├── geometry.mjs             # vendor 自 archify（仅追加归属头，逻辑未改）
+│   ├── diagnostics.mjs          # vendor 自 archify（仅追加归属头，逻辑未改）
+│   ├── theme.mjs                # 配色 token 与明暗双模
+│   ├── layout.mjs               # 自动布局（正交路由、阶段带、回边绕行）
+│   ├── render.mjs               # 静态 SVG 渲染
+│   ├── schema.mjs               # 运行时 schema 校验（JSON Schema 子集）
+│   └── checks/
+│       ├── composition.mjs      # 构图检查 9 项
+│       └── document.mjs         # 文档集成检查 6 项
+├── schemas/{common,architecture,flow,sequence}.schema.json
+├── examples/                    # 各类型示例 IR
+└── references/
+    ├── diagram-spec.md          # IR 规范、role 语义、布局规则、修复优先级
+    └── diagram-contract.md      # 诊断 / 回执契约、15 项检查逐项说明
+```
+
+## 运行时要求
+
+- **Node.js 18+**，仅用内置模块，**零 npm 依赖**
+- 源文件为 `.mjs`，不依赖 `package.json` 的 `type` 字段
+- 路径一律用 `import.meta.url` 相对解析，**支持从任意 cwd 调用**
+
+## 设计原则
+
+1. **结构先于像素**：模型输出 IR，不出 SVG 字符串。
+2. **验证即契约**：检查项机器可读，失败给出 `subject` / `evidence` / `supportedFixes`。
+3. **有界诚实**：修不好就如实报告，不允许伪造通过。
+4. **自包含**：无运行时依赖，产物可脱离本工具独立使用。
+
+## Vendor 与授权
 
 `lib/geometry.mjs` 与 `lib/diagnostics.mjs` 原样 vendored 自开源项目
 [archify](https://github.com/tt-a1i/archify)（MIT，作者 tt-a1i，基于
 Cocoon-AI/architecture-diagram-generator MIT v1.0），来源版本 `v2.17.0-dev.1`。
-除文件头追加归属注释外，**逻辑未修改**。详见 `THIRD_PARTY_NOTICES.md`。
+除文件头追加归属注释外**逻辑未修改**。详见 `THIRD_PARTY_NOTICES.md`。
+
+archsvg 自身以 MIT 发布。
 
 ### 环境变量 `ARCHIFY_DIAGNOSTIC_FORMAT`
 
-`lib/diagnostics.mjs` 沿用上游同名环境变量，**保持原名不改**（改名会破坏逻辑）：
+沿用上游同名环境变量（改名会破坏 vendored 逻辑）。设为 `json` 时进入诊断录制模式：
+`installRendererDiagnosticBoundary()` 注册 `uncaughtException` 处理器，把诊断以 JSON
+写入 stderr 并退出。archsvg 自研模块不依赖该变量，仅保留语义以兼容上游代码。
 
-- 默认（未设置或任意非 `json` 值）：诊断以普通文本累加，仅在 `recordDiagnostic()` 调用时
-  缓冲，不影响正常渲染流程。
-- 设为 `json`：开启诊断录制模式——`installRendererDiagnosticBoundary()` 注册
-  `uncaughtException` 处理器，将诊断以 JSON 写入 stderr 并 `process.exit(1)`；
-  未捕获错误也会被归一化为结构化诊断回执。
+## 版本
 
-archsvg 在自研模块中**不依赖**该变量，仅保留其语义以兼容上游 vendored 代码。
-
-## 开发状态
-
-- 版本：**v0.1.0**
-- 状态：**实施中**（W1 骨架 + vendor 已完成；渲染/校验/CLI/技能文档待后续波次）。
-- 验收标准见实施计划 §4。
+**v0.1.0** —— 三类型、15 项检查、CLI 完整可用。

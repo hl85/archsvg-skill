@@ -32,7 +32,7 @@ schema 层（`validateSchema`）产出的诊断。携带 `subject` / `evidence` 
 
 ## 2. Check 对象
 
-构图/课程检查产出。
+构图 / 文档集成检查产出。
 
 ```json
 { "name": "label_route_clearance", "ok": true, "details": ["全部 9 个标签与任何边/盒子净空 ≥ 14px"] }
@@ -50,7 +50,7 @@ schema 层（`validateSchema`）产出的诊断。携带 `subject` / `evidence` 
 
 ## 3. 15 项检查逐项说明
 
-构图 9 项（复用 archify `geometry.mjs` 几何内核）+ 课程专项 6 项。
+构图 9 项（复用 archify `geometry.mjs` 几何内核）+ 文档集成专项 6 项。
 
 ### 3.1 构图 9 项
 
@@ -66,16 +66,16 @@ schema 层（`validateSchema`）产出的诊断。携带 `subject` / `evidence` 
 | `route_rhythm` | 边转折节奏合理（无 <16px / <8px 过短段） | 路由抖动 | 删冗余边、加分组 |
 | `legend_clearance` | 图例不压任何 box/容器（gap≥8px） | 图例压节点 | 减节点或调 viewBox |
 
-### 3.2 课程专项 6 项
+### 3.2 文档集成专项 6 项
 
 | 名称 | 检查什么 | 失败意味着 | 典型修法 |
 |:---|:---|:---|:---|
 | `no_ascii` | SVG 无 Box-drawing / ASCII 流程箭头残留 | 渲染了 ASCII 图 | 回查 `lib/render.mjs`（不应发生） |
 | `no_base64` | SVG 无 `data:image/` 内嵌 | 内嵌了 base64 图片 | 改为外部相对引用 |
-| `ref_reachable` | 课程 md 的 `./images/*.svg` 引用均存在 | 引用缺失 | 补图或修 md 引用 |
+| `ref_reachable` | Markdown 的 `./images/*.svg` 引用均存在 | 引用缺失 | 补图或修 Markdown 引用 |
 | `caption_present` | `meta.caption` 形如 `图 X-N · 标题` 且图号不重复 | 图题缺失/格式错/图号重复 | 补 `meta.caption`；跨文件去重 |
 | `theme_readable` | 用到的 role 在明/暗两套 token 下文字对比度 ≥ 4.5:1 | 配色对比度不足 | 回查 `role` 选用与 token |
-| `dual_track_parity` | 双轨 `images/*.svg` 文件名集合一致（仅 `--track-pair` 启用） | 双轨图不对齐 | 对齐两轨图文件 |
+| `variant_parity` | 多版本目录的 `images/*.svg` 文件名集合一致（仅 `--variant-pair` 启用） | 版本间图不对齐 | 对齐各版本图文件 |
 
 ### 3.3 档位 → 检查项数
 
@@ -98,7 +98,7 @@ schema 层（`validateSchema`）产出的诊断。携带 `subject` / `evidence` 
 
 ## 5. 回执 JSON schema
 
-`--json` 输出结构（严格照实施计划 §2.6）：
+`--json` 输出结构：
 
 ```json
 {

@@ -1,13 +1,13 @@
 ---
 name: archsvg
-description: 把结构化图描述（IR JSON）渲染为课程/文档友好的静态 SVG，并做机械验证。支持 architecture/flow/sequence 三类图，亮色优先+暗色自适应，零 JS、飞书/Obsidian 兼容。Use when 需要 架构图/流程图/时序图/演进路线图/对比图/决策树，或要验证已有 SVG 的构图质量。
+description: 面向开发者的专业图形生成管线，把结构化图描述（IR JSON）渲染为静态 SVG 并对构图做 15 项机械验证。支持架构图、系统拓扑、流程图、Pipeline、时序图、调用链、决策树、演进路线、并列对比图；自动布局、零 JS、明暗双模、可嵌入 Markdown 与文档系统。Use when 需要画/生成/重画 架构图、流程图、时序图、状态流转、决策树，要把 Mermaid 或文字描述转成静态 SVG，或要验证已有图的构图质量。
 ---
 
 # archsvg —— IR JSON → 静态 SVG 渲染 + 机械验证
 
-把「结构化图描述（IR JSON）」渲染为**课程/文档友好的静态 SVG**，并对构图质量做 15 项机械检查，产出机器可读回执。零 JS、亮色优先 + `prefers-color-scheme: dark`、飞书/Obsidian 兼容、单图 < 35 KB。
+把「结构化图描述（IR JSON）」渲染为**可嵌入文档的静态 SVG**，并对构图质量做 15 项机械检查，产出机器可读回执。自动布局、零 JS、亮色优先 + `prefers-color-scheme: dark`、单图通常 < 15 KB。
 
-被 course-skill 等消费者调用；自身不依赖任何上游 skill。
+**本技能自包含**：只认 IR JSON，不依赖任何外部 skill 或业务语义。
 
 ## 快速创作路径
 
@@ -50,7 +50,7 @@ description: 把结构化图描述（IR JSON）渲染为课程/文档友好的�
 - ❌ 在验证失败时产出 SVG 文件（`render` 验证不过绝不写盘）。
 - ❌ 修改 vendor 的 `lib/geometry.mjs` / `lib/diagnostics.mjs`（归属 archify，仅可追加归属头）。
 - ❌ 在 IR 里手写坐标（`pos`/`x`/`y` 等由布局器生成）。
-- ❌ import course-skill 或任何外部 skill 文件。
+- ❌ 依赖任何外部 skill 文件，或让 IR 语义耦合某个具体业务领域。
 - ❌ 引入任何 npm 依赖。
 
 ## CLI 用法

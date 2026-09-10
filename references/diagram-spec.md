@@ -122,11 +122,11 @@ messages:     [{ from, to, label, kind: "sync"|"async"|"return"|"self" }]
    4. `label_route_clearance` —— 标签太挤 → 缩短标签文案 / 调整（靠布局器，必要时减边）。
    5. `orthogonal_arrows` / `relationship_corridors` / `container_border_runs` / `route_rhythm` —— 路由质量问题，优先通过删冗余边、加分组解决。
    6. `legend_clearance` —— 图例压节点 → 布局器自动避让，异常时减节点或调 `viewBox`。
-3. **课程专项 6 项**：
+3. **文档集成专项 6 项**：
    - `no_ascii` / `no_base64` —— 产物层，渲染器已保证零残留；若触发说明渲染器被改，回查 `lib/render.mjs`。
-   - `ref_reachable` —— 课程目录相对引用缺失，补图或改 md 引用。
+   - `ref_reachable` —— 文档目录相对引用缺失，补图或改 Markdown 引用。
    - `caption_present` —— 补 `meta.caption` 为 `图 X-N · 标题` 格式。
    - `theme_readable` —— 对比度不足，回查 `role` 选用与 `lib/theme.mjs` token。
-   - `dual_track_parity` —— 仅 `--track-pair` 启用，双轨图数量/文件名对齐。
+   - `variant_parity` —— 仅 `--variant-pair` 启用，多版本目录图数量/文件名对齐。
 
 > 每轮修复后重跑 `validate --quality showcase`，记录失败数；连续两轮未降低 → 停止并如实报告（见 SKILL.md 有界重试）。
