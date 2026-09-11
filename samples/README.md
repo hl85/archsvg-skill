@@ -1,7 +1,7 @@
 # samples —— 成品样例画廊
 
 每个样例一对文件：`.json` 为 IR 源（**唯一应修改的文件**），`.svg` 为 showcase 档位
-（16/16 项全过）的渲染产物。改了 IR 后重渲染：
+（17/17 项全过）的渲染产物。改了 IR 后重渲染：
 
 ```bash
 node ../bin/archsvg.mjs render <type> <sample>.json <sample>.svg --quality showcase

@@ -3,7 +3,7 @@
 > 给开发者的专业图形生成管线：**IR JSON → 机械验证 → 静态 SVG**。
 
 archsvg 让你用一份描述图结构的 JSON（IR，Intermediate Representation）表达架构图、流程图、
-时序图，由它负责自动布局与渲染，并在出图前做 16 项机械检查。产出是**单文件静态 SVG**，
+时序图，由它负责自动布局与渲染，并在出图前做 17 项机械检查。产出是**单文件静态 SVG**，
 可直接嵌入 Markdown、文档系统或代码仓库。
 
 ## 它解决什么问题
@@ -25,7 +25,7 @@ archsvg 的做法是**让模型输出结构，而不是输出像素**：
       ↓
   Schema 校验           ← 字段合法性
       ↓
-  构图检查（16 项）     ← 标签遮挡、连线穿越、走廊歧义、对比度…
+  机械检查（17 项）     ← 标签遮挡、连线穿越、走廊歧义、对比度、文字描边…
       ↓
   渲染静态 SVG
 ```
@@ -102,7 +102,7 @@ archsvg render   <type> <input.json> <output.svg> [--quality standard|showcase] 
 ```
 
 - `<type>` ∈ `architecture` | `flow` | `sequence`
-- `--quality`：`standard` 13 项 / `showcase` 16 项（默认 `standard`）
+- `--quality`：`standard` 14 项 / `showcase` 17 项（默认 `standard`）
 - `--json`：输出机器可读回执，含 `checks`、`composition.summary`、`artifact.sha256`
 
 退出码：
@@ -161,7 +161,7 @@ archsvg/
 └── references/
     ├── design-system.md         # 固定风格约定 + fewshot（域→role 配色、文案规范、自检）
     ├── diagram-spec.md          # IR 规范、role 语义、布局规则、修复优先级
-    └── diagram-contract.md      # 诊断 / 回执契约、16 项检查逐项说明
+    └── diagram-contract.md      # 诊断 / 回执契约、17 项检查逐项说明
 ```
 
 ## 运行时要求
@@ -194,4 +194,4 @@ archsvg 自身以 MIT 发布。
 
 ## 版本
 
-**v0.1.1** —— 三类型、16 项检查、画布自动贴合、固定风格设计系统（`references/design-system.md`）。
+**v0.1.2** —— 三类型、17 项检查（新增 `text_no_stroke`）、画布自动贴合、共列网格、固定风格设计系统。

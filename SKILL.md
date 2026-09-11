@@ -6,7 +6,7 @@ agent_created: true
 
 # archsvg —— IR JSON → 静态 SVG 渲染 + 机械验证
 
-把「结构化图描述（IR JSON）」渲染为**可嵌入文档的静态 SVG**，并对构图质量做 16 项机械检查，产出机器可读回执。自动布局、零 JS、亮色优先 + `prefers-color-scheme: dark`、单图通常 < 15 KB。
+把「结构化图描述（IR JSON）」渲染为**可嵌入文档的静态 SVG**，并对构图质量做 17 项机械检查，产出机器可读回执。自动布局、零 JS、亮色优先 + `prefers-color-scheme: dark`、单图通常 < 15 KB。
 
 **本技能自包含**：只认 IR JSON，不依赖任何外部 skill 或业务语义。
 
@@ -64,7 +64,7 @@ archsvg render   <type> <input.json> <output.svg> [--quality standard|showcase] 
 ```
 
 - `<type>` ∈ `architecture` | `flow` | `sequence`，且必须与 IR 内 `type` 一致。
-- `--quality`：`standard` = 13 项（10 构图 + no_ascii + no_base64 + ref_reachable）；`showcase` = 16 项全过。默认 `standard`。
+- `--quality`：`standard` = 14 项（10 构图 + no_ascii + no_base64 + text_no_stroke + ref_reachable）；`showcase` = 17 项全过。默认 `standard`。
 - `--json`：回执以 JSON 输出（见 `references/diagram-contract.md`）；非 `--json` 为人类可读逐项结果。
 
 ### 退出码
@@ -85,4 +85,4 @@ archsvg render   <type> <input.json> <output.svg> [--quality standard|showcase] 
 
 - `references/design-system.md` —— **固定风格约定 + 可复制 fewshot**：域→role 配色映射、文案规范（节点/边/caption）、布局三原则、出图前自检 5 条。**写第一版 IR 前先读它**，能省掉大半返工。
 - `references/diagram-spec.md` —— IR 字段完整说明、`role` 三域语义、布局规则（含分带与列心漂移规律）、修复优先级。
-- `references/diagram-contract.md` —— Diagnostic / Check / 回执契约、16 项检查逐项说明、退出码表。
+- `references/diagram-contract.md` —— Diagnostic / Check / 回执契约、17 项检查逐项说明、退出码表。

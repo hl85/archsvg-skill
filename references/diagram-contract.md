@@ -1,6 +1,6 @@
 # archsvg 诊断与回执契约
 
-Diagnostic 对象、Check 对象、16 项检查逐项说明、退出码表、回执 JSON schema。
+Diagnostic 对象、Check 对象、17 项检查逐项说明、退出码表、回执 JSON schema。
 
 ---
 
@@ -48,9 +48,9 @@ schema 层（`validateSchema`）产出的诊断。携带 `subject` / `evidence` 
 
 ---
 
-## 3. 16 项检查逐项说明
+## 3. 17 项检查逐项说明
 
-构图 10 项（9 项复用 archify `geometry.mjs` 几何内核 + 1 项自研不变量）+ 文档集成专项 6 项。
+构图 10 项（9 项复用 archify `geometry.mjs` 几何内核 + 1 项自研不变量）+ 文档集成专项 7 项。
 
 ### 3.1 构图 10 项
 
@@ -67,12 +67,13 @@ schema 层（`validateSchema`）产出的诊断。携带 `subject` / `evidence` 
 | `route_rhythm` | 边转折节奏合理（无 <16px / <8px 过短段） | 路由抖动 | 删冗余边、加分组 |
 | `legend_clearance` | 图例不压任何 box/容器（gap≥8px） | 图例压节点 | 减节点或调 viewBox |
 
-### 3.2 文档集成专项 6 项
+### 3.2 文档集成专项 7 项
 
 | 名称 | 检查什么 | 失败意味着 | 典型修法 |
 |:---|:---|:---|:---|
 | `no_ascii` | SVG 无 Box-drawing / ASCII 流程箭头残留 | 渲染了 ASCII 图 | 回查 `lib/render.mjs`（不应发生） |
 | `no_base64` | SVG 无 `data:image/` 内嵌 | 内嵌了 base64 图片 | 改为外部相对引用 |
+| `text_no_stroke` | 内联样式含 `text { stroke: none; }`，且无 `<text>` 带非 none 描边 | 文字被分组 role 色描边污染（发蓝/发紫/发糊），对比度类检查查不出 | 检查 `lib/theme.mjs` 的 baseCss 是否保留该规则 |
 | `ref_reachable` | Markdown 的 `./images/*.svg` 引用均存在 | 引用缺失 | 补图或修 Markdown 引用 |
 | `caption_present` | `meta.caption` 形如 `图 X-N · 标题` 且图号不重复 | 图题缺失/格式错/图号重复 | 补 `meta.caption`；跨文件去重 |
 | `theme_readable` | 用到的 role 在明/暗两套 token 下文字对比度 ≥ 4.5:1 | 配色对比度不足 | 回查 `role` 选用与 token |
@@ -80,8 +81,8 @@ schema 层（`validateSchema`）产出的诊断。携带 `subject` / `evidence` 
 
 ### 3.3 档位 → 检查项数
 
-- `standard`：10 构图 + `no_ascii` + `no_base64` + `ref_reachable` = **13 项**
-- `showcase`：16 项**全过**
+- `standard`：10 构图 + `no_ascii` + `no_base64` + `text_no_stroke` + `ref_reachable` = **14 项**
+- `showcase`：17 项**全过**
 
 ---
 
