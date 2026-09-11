@@ -52,6 +52,12 @@
 > 且 `layout.LABEL_MIN_CLEAR` 必须 **≥** 检查阈值 `max(8, LABEL_HEIGHT)`——
 > 放置器与检查器的阈值不一致时，会选出「刚好差 0.5px」的位置导致批量误报。
 
+> ⚠️ **文本必须 `stroke: none`（已由 `text { stroke: none; }` 兜底）**：
+> role 的描边定义在分组 `<g class="role-*">` 上，而 **SVG 中 `g` 的 `stroke` 会被子元素继承**。
+> 文字类若只覆盖 `fill` 不覆盖 `stroke`，近黑字就会被套上 role 色 1px 描边——
+> 观感是「文字发蓝/发紫、发糊、发虚」，且**所有检查项都查不出来**（`theme_readable` 只看 fill 对比度）。
+> 排查同类问题的正确姿势：用 Playwright 读 `getComputedStyle(el).fill` **和 `.stroke`**，别只看 fill。
+
 ---
 
 ## 3. 布局三原则

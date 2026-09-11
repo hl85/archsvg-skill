@@ -50,6 +50,7 @@
 }
 
 svg { background: var(--canvas); }
+text { stroke: none; }
 .title { fill: var(--text); font-size: 24px; font-weight: 700; }
 .desc { fill: var(--muted); font-size: 12px; }
 .caption { fill: var(--muted); font-size: 12px; }
