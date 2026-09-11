@@ -5,30 +5,128 @@
     "title": "电商订单系统分层架构",
     "caption": "图 1-1 · 电商订单系统分层架构（接入 / 服务 / 存储）",
     "locale": "zh-CN",
-    "viewBox": [900, 500]
+    "viewBox": [
+      900,
+      500
+    ]
   },
   "groups": [
-    { "id": "gateway-layer", "label": "接入层", "role": "interaction" },
-    { "id": "service-layer", "label": "服务层", "role": "control" },
-    { "id": "storage-layer", "label": "存储层", "role": "capability" }
+    {
+      "id": "gateway-layer",
+      "label": "接入层",
+      "role": "interaction"
+    },
+    {
+      "id": "service-layer",
+      "label": "服务层",
+      "role": "control"
+    },
+    {
+      "id": "storage-layer",
+      "label": "存储层",
+      "role": "capability"
+    }
   ],
   "nodes": [
-    { "id": "gateway", "label": "APIGateway", "sublabel": "统一入口", "role": "interaction", "group": "gateway-layer" },
-    { "id": "auth", "label": "AuthService", "sublabel": "JWT 鉴权", "role": "control", "group": "gateway-layer" },
-    { "id": "order", "label": "OrderService", "sublabel": "订单编排", "role": "control", "group": "service-layer" },
-    { "id": "inventory", "label": "InventoryService", "sublabel": "库存扣减", "role": "capability", "group": "service-layer" },
-    { "id": "payment", "label": "PaymentService", "sublabel": "支付网关适配", "role": "capability", "group": "service-layer" },
-    { "id": "mysql", "label": "MySQL", "sublabel": "订单主库", "role": "neutral", "group": "storage-layer" },
-    { "id": "redis", "label": "Redis", "sublabel": "幂等锁", "role": "neutral", "group": "storage-layer" },
-    { "id": "mq", "label": "RocketMQ", "sublabel": "订单事件", "role": "interaction", "group": "storage-layer" }
+    {
+      "id": "gateway",
+      "label": "APIGateway",
+      "sublabel": "统一入口",
+      "role": "interaction",
+      "group": "gateway-layer"
+    },
+    {
+      "id": "auth",
+      "label": "AuthService",
+      "sublabel": "JWT 鉴权",
+      "role": "control",
+      "group": "gateway-layer"
+    },
+    {
+      "id": "order",
+      "label": "OrderService 订单",
+      "sublabel": "订单编排",
+      "role": "control",
+      "group": "service-layer"
+    },
+    {
+      "id": "inventory",
+      "label": "InventoryService",
+      "sublabel": "库存扣减",
+      "role": "capability",
+      "group": "service-layer"
+    },
+    {
+      "id": "payment",
+      "label": "PaymentService 支付",
+      "sublabel": "支付网关适配",
+      "role": "capability",
+      "group": "service-layer"
+    },
+    {
+      "id": "mysql",
+      "label": "MySQL",
+      "sublabel": "订单主库",
+      "role": "neutral",
+      "group": "storage-layer"
+    },
+    {
+      "id": "redis",
+      "label": "Redis",
+      "sublabel": "幂等锁",
+      "role": "neutral",
+      "group": "storage-layer"
+    },
+    {
+      "id": "mq",
+      "label": "RocketMQ",
+      "sublabel": "订单事件",
+      "role": "interaction",
+      "group": "storage-layer"
+    }
   ],
   "edges": [
-    { "from": "gateway", "to": "auth", "label": "token 校验", "kind": "sync" },
-    { "from": "gateway", "to": "order", "label": "创建订单", "kind": "sync" },
-    { "from": "order", "to": "inventory", "label": "锁定库存", "kind": "sync" },
-    { "from": "order", "to": "payment", "label": "发起扣款", "kind": "sync" },
-    { "from": "order", "to": "mysql", "label": "订单落库", "kind": "data" },
-    { "from": "order", "to": "redis", "label": "幂等锁", "kind": "async" },
-    { "from": "payment", "to": "mq", "label": "支付成功事件", "kind": "async" }
+    {
+      "from": "gateway",
+      "to": "auth",
+      "label": "token 校验",
+      "kind": "sync"
+    },
+    {
+      "from": "gateway",
+      "to": "order",
+      "label": "创建订单",
+      "kind": "sync"
+    },
+    {
+      "from": "order",
+      "to": "inventory",
+      "label": "锁定库存",
+      "kind": "sync"
+    },
+    {
+      "from": "order",
+      "to": "payment",
+      "label": "发起扣款",
+      "kind": "sync"
+    },
+    {
+      "from": "order",
+      "to": "mysql",
+      "label": "订单落库",
+      "kind": "data"
+    },
+    {
+      "from": "order",
+      "to": "redis",
+      "label": "幂等锁",
+      "kind": "async"
+    },
+    {
+      "from": "payment",
+      "to": "mq",
+      "label": "支付成功事件",
+      "kind": "async"
+    }
   ]
 }
