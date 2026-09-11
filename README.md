@@ -129,6 +129,9 @@ archsvg render   <type> <input.json> <output.svg> [--quality standard|showcase] 
 - 单文件静态 SVG，**内联样式**，亮色优先 + `@media (prefers-color-scheme: dark)` 暗色自适应
 - **零 JS**、无 `foreignObject`、无外部字体，可在飞书 / Obsidian / GitHub 等环境正常渲染
 - 自动布局，**调用方不写坐标**；内容放不下时自动扩展画布，不压缩节点、不缩字号
+- **画布自动贴合内容**：`viewBox` 只作行内舒展提示，成品尺寸裁到内容边界（含图例），不留空边
+- 标题居中；`meta.caption` 除写入 `<desc>` 外，同时渲染为**底部图注**（图号 + 口径就近可读）
+- 节点标题统一中性近黑/近白，role 色只承担卡片填充与描边的语义（避免同色系顺色发虚）
 - 含 `<title>` / `<desc>` 无障碍信息
 - 单图通常 **< 15 KB**
 
@@ -156,6 +159,7 @@ archsvg/
 ├── examples/                    # 各类型最小示例 IR（Schema 对照用）
 ├── samples/                     # 成品样例画廊（IR + 已渲染 SVG，覆盖全部类型与变体）
 └── references/
+    ├── design-system.md         # 固定风格约定 + fewshot（域→role 配色、文案规范、自检）
     ├── diagram-spec.md          # IR 规范、role 语义、布局规则、修复优先级
     └── diagram-contract.md      # 诊断 / 回执契约、15 项检查逐项说明
 ```

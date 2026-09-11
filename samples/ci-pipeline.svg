@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 382" width="880" height="382" font-family="system-ui,-apple-system,BlinkMacSystemFont,&quot;Segoe UI&quot;,Roboto,sans-serif"><title>CI 发布流水线</title><desc>图 2-1 · CI 发布流水线（提交 → 构建 → 验证 → 发布）</desc><style>:root {
+--canvas: #f8fafc;
+--panel: #ffffff;
+--panel-border: #e2e8f0;
+--text: #0f172a;
+--muted: #64748b;
+--arrow: #94a3b8;
+--grid: #e2e8f0;
+--role-control-fill: #fdf4ff;
+--role-control-stroke: #c084fc;
+--role-control-text: #7e22ce;
+--role-capability-fill: #f0fdf4;
+--role-capability-stroke: #4ade80;
+--role-capability-text: #166534;
+--role-interaction-fill: #eff6ff;
+--role-interaction-stroke: #60a5fa;
+--role-interaction-text: #1e40af;
+--role-warn-fill: #fef2f2;
+--role-warn-stroke: #ef4444;
+--role-warn-text: #b91c1c;
+--role-neutral-fill: #f8fafc;
+--role-neutral-stroke: #94a3b8;
+--role-neutral-text: #475569;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+  --canvas: #0f172a;
+  --panel: #1e293b;
+  --panel-border: #334155;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --arrow: #64748b;
+  --grid: #1e293b;
+  --role-control-fill: rgba(168,85,247,0.18);
+  --role-control-stroke: #c084fc;
+  --role-control-text: #e9d5ff;
+  --role-capability-fill: rgba(74,222,128,0.16);
+  --role-capability-stroke: #4ade80;
+  --role-capability-text: #bbf7d0;
+  --role-interaction-fill: rgba(96,165,250,0.16);
+  --role-interaction-stroke: #60a5fa;
+  --role-interaction-text: #dbeafe;
+  --role-warn-fill: rgba(239,68,68,0.16);
+  --role-warn-stroke: #f87171;
+  --role-warn-text: #fecaca;
+  --role-neutral-fill: rgba(148,163,184,0.14);
+  --role-neutral-stroke: #94a3b8;
+  --role-neutral-text: #cbd5e1;
+  }
+}
+
+svg { background: var(--canvas); }
+.title { fill: var(--text); font-size: 22px; font-weight: 700; }
+.desc { fill: var(--muted); font-size: 12px; }
+.caption { fill: var(--muted); font-size: 12px; }
+.frame { fill: var(--panel); stroke: var(--panel-border); stroke-width: 1.25; }
+.frame-label { fill: var(--muted); font-size: 12px; font-weight: 600; }
+.node { stroke-width: 1.5; }
+.n-label { fill: var(--text); font-size: 14px; font-weight: 700; dominant-baseline: central; }
+.n-sub { fill: var(--muted); font-size: 11px; dominant-baseline: central; }
+.edge { fill: none; stroke: var(--arrow); stroke-width: 1.5; }
+.edge-dashed { stroke-dasharray: 5 4; }
+.edge-label { fill: var(--muted); font-size: 11px; dominant-baseline: central; }
+.lifeline { fill: none; stroke: var(--arrow); stroke-width: 1.25; stroke-dasharray: 4 4; }
+.legend-box { fill: var(--panel); stroke: var(--panel-border); stroke-width: 1; }
+.legend-label { fill: var(--text); font-size: 11px; dominant-baseline: central; }
+.arrow-fill { fill: var(--arrow); }
+.arrow-line { fill: none; stroke: var(--arrow); stroke-width: 1.4; }
+.role-control { fill: var(--role-control-fill); stroke: var(--role-control-stroke); }
+.role-control .node { fill: var(--role-control-fill); stroke: var(--role-control-stroke); }
+.role-capability { fill: var(--role-capability-fill); stroke: var(--role-capability-stroke); }
+.role-capability .node { fill: var(--role-capability-fill); stroke: var(--role-capability-stroke); }
+.role-interaction { fill: var(--role-interaction-fill); stroke: var(--role-interaction-stroke); }
+.role-interaction .node { fill: var(--role-interaction-fill); stroke: var(--role-interaction-stroke); }
+.role-warn { fill: var(--role-warn-fill); stroke: var(--role-warn-stroke); }
+.role-warn .node { fill: var(--role-warn-fill); stroke: var(--role-warn-stroke); }
+.role-neutral { fill: var(--role-neutral-fill); stroke: var(--role-neutral-stroke); }
+.role-neutral .node { fill: var(--role-neutral-fill); stroke: var(--role-neutral-stroke); }</style><style>.edge-label-bg{fill:var(--canvas);stroke:none;}</style><defs><marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path class="arrow-fill" d="M0,0 L8,4 L0,8 Z"/></marker><marker id="arrow-async" markerWidth="10" markerHeight="10" refX="7" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path class="arrow-line" d="M0,0 L8,4 L0,8"/></marker><marker id="arrow-fallback" markerWidth="10" markerHeight="10" refX="7" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path class="arrow-line" d="M0,0 L8,4 L0,8"/></marker></defs><text class="title" x="440" y="32" text-anchor="middle">CI 发布流水线</text><g><rect class="frame" x="24" y="52" width="160" height="180" rx="10"/><text class="frame-label" x="36" y="70">提交</text></g><g><rect class="frame" x="248" y="52" width="160" height="180" rx="10"/><text class="frame-label" x="260" y="70">构建</text></g><g><rect class="frame" x="472" y="52" width="160" height="180" rx="10"/><text class="frame-label" x="484" y="70">验证</text></g><g><rect class="frame" x="696" y="52" width="160" height="180" rx="10"/><text class="frame-label" x="708" y="70">发布</text></g><path class="edge" d="M 152 93 L 280 93" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="185.88" y="100" width="60.25" height="14" rx="3"/><text class="edge-label" x="216" y="110" text-anchor="middle">push 事件</text><path class="edge" d="M 376 93 L 499 93" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="412" y="108" width="52" height="14" rx="3"/><text class="edge-label" x="438" y="118" text-anchor="middle">构建产物</text><path class="edge" d="M 606 93 L 725 93" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="640" y="100" width="52" height="14" rx="3"/><text class="edge-label" x="666" y="110" text-anchor="middle">门禁通过</text><path class="edge edge-dashed" d="M 499 93 L 376 93" marker-end="url(#arrow-fallback)"/><rect class="edge-label-bg" x="397.98" y="108" width="80.05" height="14" rx="3"/><text class="edge-label" x="438" y="118" text-anchor="middle">失败·修复重跑</text><path class="edge edge-dashed" d="M 776 116 L 776 186" marker-end="url(#arrow-fallback)"/><rect class="edge-label-bg" x="764" y="144" width="52" height="14" rx="3"/><text class="edge-label" x="790" y="154" text-anchor="middle">指标越限</text><g class="role-interaction"><rect class="node" x="56" y="70" width="96" height="46" rx="8"/><text class="n-label" x="104" y="88" text-anchor="middle">Git Push</text><text class="n-sub" x="104" y="102" text-anchor="middle">触发流水线</text></g><g class="role-capability"><rect class="node" x="280" y="70" width="96" height="46" rx="8"/><text class="n-label" x="328" y="88" text-anchor="middle">Build</text><text class="n-sub" x="328" y="102" text-anchor="middle">编译 + 单测</text></g><g class="role-control"><rect class="node" x="499" y="70" width="107" height="46" rx="8"/><text class="n-label" x="552" y="88" text-anchor="middle">QualityGate</text><text class="n-sub" x="552" y="102" text-anchor="middle">覆盖率门禁</text></g><g class="role-capability"><rect class="node" x="725" y="70" width="102" height="46" rx="8"/><text class="n-label" x="776" y="88" text-anchor="middle">Deploy</text><text class="n-sub" x="776" y="102" text-anchor="middle">灰度 10% 起步</text></g><g class="role-warn"><rect class="node" x="728" y="186" width="96" height="46" rx="8"/><text class="n-label" x="776" y="204" text-anchor="middle">Rollback</text><text class="n-sub" x="776" y="218" text-anchor="middle">异常自动回滚</text></g><g class="legend"><rect class="legend-box" x="624" y="248" width="232" height="84" rx="6"/><rect class="role-control" x="634" y="251" width="14" height="14" rx="3"/><text class="legend-label" x="656" y="260" text-anchor="start">控制</text><rect class="role-capability" x="634" y="269" width="14" height="14" rx="3"/><text class="legend-label" x="656" y="278" text-anchor="start">能力</text><rect class="role-interaction" x="634" y="287" width="14" height="14" rx="3"/><text class="legend-label" x="656" y="296" text-anchor="start">交互</text><rect class="role-warn" x="634" y="305" width="14" height="14" rx="3"/><text class="legend-label" x="656" y="314" text-anchor="start">告警</text></g><text class="caption" x="440" y="371" text-anchor="middle">图 2-1 · CI 发布流水线（提交 → 构建 → 验证 → 发布）</text></svg>

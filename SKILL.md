@@ -13,7 +13,7 @@ agent_created: true
 ## 快速创作路径
 
 1. **选类型**：按下方「类型路由表」确定 `architecture` / `flow` / `sequence`。
-2. **读 schema + example**：`schemas/<type>.schema.json` 与 `examples/<type>.json` 各一份；成品级参考（含已渲染 SVG、覆盖全部类型与变体）见 `samples/`。
+2. **读约定 + schema + example**：先读 `references/design-system.md`（域→role 配色、文案模板、fewshot）；再对照 `schemas/<type>.schema.json` 与 `examples/<type>.json`；成品级参考（含已渲染 SVG、覆盖全部类型与变体）见 `samples/`。
 3. **写 IR**：只填语义（`role` / `label` / `edges`），**禁止手写坐标**——坐标由 `lib/layout.mjs` 自动布局。
 4. **validate**：`archsvg validate <type> <ir.json> --quality showcase`。
 5. **按诊断修**：回执里的 `diagnostics[].supportedFixes` 是定点修复建议，逐条改 IR，**不要为了让检查通过而裁剪语义**。
@@ -83,5 +83,6 @@ archsvg render   <type> <input.json> <output.svg> [--quality standard|showcase] 
 
 ## 参考文档
 
-- `references/diagram-spec.md` —— IR 字段完整说明、`role` 三域语义、布局规则、修复优先级。
+- `references/design-system.md` —— **固定风格约定 + 可复制 fewshot**：域→role 配色映射、文案规范（节点/边/caption）、布局三原则、出图前自检 5 条。**写第一版 IR 前先读它**，能省掉大半返工。
+- `references/diagram-spec.md` —— IR 字段完整说明、`role` 三域语义、布局规则（含分带与列心漂移规律）、修复优先级。
 - `references/diagram-contract.md` —— Diagnostic / Check / 回执契约、15 项检查逐项说明、退出码表。
