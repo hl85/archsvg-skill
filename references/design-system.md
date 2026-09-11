@@ -34,6 +34,24 @@
 
 底线：**删标签 = 删信息**。`label` 是语义数据，不是注释。
 
+### 2.1 字级与线宽（固定值，不要逐图调）
+
+| 元素 | 字号 / 线宽 |
+|:---|:---|
+| 主标题 | 24px，weight 700 |
+| **节点标题** | **16px，weight 700**（近黑 `--text`，不用 role 同色——会同色系顺色发虚） |
+| 节点副标签 | 12px，`--muted` |
+| 边标签 | 12px，`--muted` |
+| 组框标签 | 13px，weight 700，`--text` |
+| 图例 | 12px |
+| 连线 | `stroke-width: 2` |
+
+> ⚠️ **改字号必须三方同步**，否则文字会溢出盒子、或触发净空误报：
+> `lib/theme.mjs`（CSS）↔ `lib/layout.mjs`（`NODE_FONT`/`SUB_FONT`/`LABEL_H`/盒高等估算常量）
+> ↔ `lib/checks/composition.mjs`（`LABEL_FONT`/`LABEL_HEIGHT`）。
+> 且 `layout.LABEL_MIN_CLEAR` 必须 **≥** 检查阈值 `max(8, LABEL_HEIGHT)`——
+> 放置器与检查器的阈值不一致时，会选出「刚好差 0.5px」的位置导致批量误报。
+
 ---
 
 ## 3. 布局三原则
