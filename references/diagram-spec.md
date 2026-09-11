@@ -126,9 +126,10 @@ messages:     [{ from, to, label, kind: "sync"|"async"|"return"|"self" }]
 检查项失败时，**按以下顺序**定点修复，避免在错误层级反复横跳：
 
 1. **schema 层**（`validateSchema` 诊断）：先修 JSON 结构/字段类型/枚举/必填——这是根因，结构错后面全错。
-2. **构图 9 项**（按影响面从大到小）：
+2. **构图 10 项**（按影响面从大到小）：
    1. `finite_svg` —— 出现 NaN/Infinity，通常是 IR 缺字段导致布局器算崩。
    2. `node_overlap` —— 节点太多/分组太挤 → 拆组、减节点、或拆图。
+   2b. `node_text_in_box` —— 文字锚点跑出盒子（色块空、文字错位）→ 回查 layout 里所有坐标变换是否同步处理了 `cx/cy`。
    3. `relationship_crossings` —— 边穿越无关节点 → 改边起止、加分组、调布局。
    4. `label_route_clearance` —— 标签太挤 → 缩短标签文案 / 调整（靠布局器，必要时减边）。
    5. `orthogonal_arrows` / `relationship_corridors` / `container_border_runs` / `route_rhythm` —— 路由质量问题，优先通过删冗余边、加分组解决。

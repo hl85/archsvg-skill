@@ -54,7 +54,7 @@ svg { background: var(--canvas); }
 .desc { fill: var(--muted); font-size: 12px; }
 .caption { fill: var(--muted); font-size: 12px; }
 .frame { fill: var(--panel); stroke: var(--panel-border); stroke-width: 1.25; }
-.frame-label { fill: var(--muted); font-size: 12px; font-weight: 600; }
+.frame-label { fill: var(--text); font-size: 12px; font-weight: 700; }
 .node { stroke-width: 1.5; }
 .n-label { fill: var(--text); font-size: 14px; font-weight: 700; dominant-baseline: central; }
 .n-sub { fill: var(--muted); font-size: 11px; dominant-baseline: central; }

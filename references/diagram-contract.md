@@ -1,6 +1,6 @@
 # archsvg 诊断与回执契约
 
-Diagnostic 对象、Check 对象、15 项检查逐项说明、退出码表、回执 JSON schema。
+Diagnostic 对象、Check 对象、16 项检查逐项说明、退出码表、回执 JSON schema。
 
 ---
 
@@ -48,16 +48,17 @@ schema 层（`validateSchema`）产出的诊断。携带 `subject` / `evidence` 
 
 ---
 
-## 3. 15 项检查逐项说明
+## 3. 16 项检查逐项说明
 
-构图 9 项（复用 archify `geometry.mjs` 几何内核）+ 文档集成专项 6 项。
+构图 10 项（9 项复用 archify `geometry.mjs` 几何内核 + 1 项自研不变量）+ 文档集成专项 6 项。
 
-### 3.1 构图 9 项
+### 3.1 构图 10 项
 
 | 名称 | 检查什么 | 失败意味着 | 典型修法 |
 |:---|:---|:---|:---|
 | `finite_svg` | 所有坐标均为有限数（无 NaN/Infinity） | 布局器算出非有限坐标，通常 IR 缺字段 | 补 IR 必填字段 |
 | `node_overlap` | 节点两两不相交（gap≥8px） | 节点太挤/分组过密 | 拆组、减节点、拆图（≤24） |
+| `node_text_in_box` | 每个 box 的文字锚点 (cx,cy) 落在盒内 | 坐标变换漏改 cx/cy → 色块与文字分离（画布会出现空色块） | 回查 layout 的坐标变换，须同时平移 cx/cy |
 | `relationship_crossings` | 边不穿越无关节点框 | 路由穿过无关节点 | 改边起止、加分组、调布局 |
 | `label_route_clearance` | 边标签与任何边/盒子净空 ≥ 阈值（短轴高度，默认 14px） | 标签压线/压框 | 缩短标签、减冗余边 |
 | `orthogonal_arrows` | 边首尾段垂直于其 fromSide/toSide | 箭头未正交 | 交由布局器修正；排查非法 kind |
@@ -79,8 +80,8 @@ schema 层（`validateSchema`）产出的诊断。携带 `subject` / `evidence` 
 
 ### 3.3 档位 → 检查项数
 
-- `standard`：9 构图 + `no_ascii` + `no_base64` + `ref_reachable` = **12 项**
-- `showcase`：15 项**全过**
+- `standard`：10 构图 + `no_ascii` + `no_base64` + `ref_reachable` = **13 项**
+- `showcase`：16 项**全过**
 
 ---
 
