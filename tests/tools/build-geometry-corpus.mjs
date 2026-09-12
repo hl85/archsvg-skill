@@ -20,7 +20,7 @@
 // 不需要 vendored geometry 在场即可产出语料；但与它配套的 golden 必须在
 // vendored 代码还在时捕获。
 
-import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
@@ -835,6 +835,20 @@ function main() {
     })),
   };
   // 生成物用紧凑序列化：2 空格缩进会让深层嵌套的坐标数组膨胀一倍以上（1.6MB → 0.68MB）。
+  // ⛔ 硬闸门：语料与 golden 必须成对（parity 测试会核对两侧 id 集合）。
+  // 重写后再跑本脚本会用「当前实现的 layout 输出」重建真实数据条目，
+  // 并丢掉此后手工补入的条目 —— 两侧 id 集合随即不一致。默认拒绝覆盖。
+  if (existsSync(OUT) && !process.argv.includes('--force')) {
+    console.error([
+      '✗ 拒绝覆盖已存在的语料文件。',
+      `    ${OUT}`,
+      '',
+      '  语料与 golden 是成对的冻结基线（parity 测试会核对两侧 id 集合）；',
+      '  重写本脚本的产物需要同时重建 golden，而 golden 已不可重生成。',
+      '  若你确实要重建（例如换了参考实现），请显式加 --force，并同步处理 golden。',
+    ].join('\n'));
+    process.exit(2);
+  }
   writeFileSync(OUT, `${JSON.stringify(payload)}\n`, 'utf8');
 
   const byFn = new Map();

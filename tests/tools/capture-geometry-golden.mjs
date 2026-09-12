@@ -18,10 +18,67 @@
 //     写成 __num / __undefined / __fn / __circular 等标记。捕获结束会打印标记统计。
 
 import { readFileSync, writeFileSync, statSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
-import * as geometry from '../../lib/geometry.mjs';
+// =====================================================================
+// ⛔ 硬闸门：本脚本已退役，默认**不可运行**。
+//
+// 为什么需要闸门而不是一句注释：它的输出就是 parity 测试的判据。若它在重写后
+// 被重新运行，会把基线覆盖成「当前实现自己的输出」——parity 当场退化成永远为真，
+// 而且**没有任何提示**。注释拦不住人，哈希能。
+//
+// 现在的 lib/geometry.mjs 是自研实现，不再是捕获基线时用的那个参考实现。
+// 要重放捕获，必须显式提供参考实现，且其 sha256 必须匹配下面记录的指纹。
+// =====================================================================
+const REFERENCE_SHA256 = 'fcc6f6855fef465fbcbe780009fa083867ae8abd7814dfc47cb6ab3ddca7ce90';
+const REFERENCE_DESC = '当 vendored 的 lib/geometry.mjs（1430 行，archify v2.17.0-dev.1）';
+
+function resolveReference() {
+  const p = process.env.ARCHSVG_GEOMETRY_REFERENCE;
+  if (!p) {
+    console.error([
+      '✗ 拒绝运行：本脚本已退役，输出即 parity 判据，不能用当前实现覆盖。',
+      '',
+      `  它只应在「${REFERENCE_DESC} 还在、需要重新捕获基线」时运行。`,
+      '  如需重放，请显式提供参考实现并确认其哈希：',
+      '',
+      `    ARCHSVG_GEOMETRY_REFERENCE=<path> node tests/tools/capture-geometry-golden.mjs`,
+      '',
+      `  参考实现的 sha256 必须等于 ${REFERENCE_SHA256}`,
+      `  （可从 git 历史取：git show <vendored-commit>:lib/geometry.mjs）`,
+      '',
+      '  另：本脚本的 import 目标已改为 lib/geometry.mjs（自研实现），',
+      '  仅当 ARCHSVG_GEOMETRY_REFERENCE 指向的文件内容与其哈希匹配时才继续。',
+    ].join('\n'));
+    process.exit(2);
+  }
+  const abs = path.resolve(p);
+  let src;
+  try { src = readFileSync(abs, 'utf8'); } catch (e) {
+    console.error(`✗ 无法读取参考实现：${abs}（${e.message}）`);
+    process.exit(2);
+  }
+  const sha = createHash('sha256').update(Buffer.from(src, 'utf8')).digest('hex');
+  if (sha !== REFERENCE_SHA256) {
+    console.error([
+      `✗ 拒绝运行：参考实现哈希不匹配，说明它**不是**捕获基线时用的那个版本。`,
+      `    给定文件：${abs}`,
+      `    实际 sha256：${sha}`,
+      `    期望 sha256：${REFERENCE_SHA256}`,
+      '',
+      '  用别的实现重放会把基线换成它的输出 —— 那正是本闸门要拦住的事。',
+    ].join('\n'));
+    process.exit(2);
+  }
+  return abs;
+}
+
+const REFERENCE_PATH = resolveReference();
+const geometry = await import(new URL(`file://${REFERENCE_PATH}`).href);
+console.log(`参考实现已校验：${REFERENCE_PATH}`);
+
 import {
   encodeValue, decodeValue,
   NUM_MARK, UNDEFINED_MARK, FN_MARK, SYMBOL_MARK, BIGINT_MARK,

@@ -17,20 +17,27 @@
 ## 用法
 
 ```bash
-node tests/tools/build-geometry-corpus.mjs    # 生成/刷新语料（可随时重跑）
-node tests/tools/capture-geometry-golden.mjs  # 生成/刷新基线（重写后**禁止**再跑）
-node bin/archsvg.mjs test                     # 跑 parity（含另外两个自检 case）
+node bin/archsvg.mjs test                     # 跑 parity（日常只需要这一条）
 ```
 
-**重写时只改 `tests/geometry-parity.test.mjs` 顶部那一行的 import 目标**（默认
-`../lib/geometry.mjs`，改成新模块即可）。其余代码不需要动。
+> ⛔ **两个生成脚本都已退役，且带硬闸门，默认拒绝运行。**
+> 它们产出的是 parity 的判据本身，而判据**已随净室重写冻结**：
+> - `capture-geometry-golden.mjs`：须 `ARCHSVG_GEOMETRY_REFERENCE=<参考实现路径>` 且该文件
+>   sha256 等于 `fcc6f6855fef465fbcbe780009fa083867ae8abd7814dfc47cb6ab3ddca7ce90`，否则拒绝。
+> - `build-geometry-corpus.mjs`：语料已存在时须显式 `--force`，否则拒绝。
+>
+> 原因：重跑它们会把判据换成**当前实现自己的输出**，parity 当场退化成永远为真，
+> 而不会有任何提示。参考实现已从仓库移除，因此实际上**不能**再重生成。
+
+**实现替换已完成**（2026-09-12 净室重写）：`tests/geometry-parity.test.mjs` 顶部那行 import
+现已指向自研的 `../lib/geometry.mjs`。若日后再次替换实现，只改那一行即可。
 
 ## 语料构成
 
-共 1271 条。真实数据来自 `samples/*.json` + `examples/*.json` 共 9 个 IR：逐个
+共 **1278** 条。真实数据来自 `samples/*.json` + `examples/*.json` 共 9 个 IR：逐个
 `layout(ir)` 后，**严格按 `lib/checks/composition.mjs` 与 `lib/layout.mjs` 的真实调用方式**
 重建每个入口的入参（照 `buildRoutes()` / `boxRoutes()` / `buildLabelRect()` /
-`placeLabels()` 复刻，未改动任何生产文件）。合成边界 197 条，覆盖：
+`placeLabels()` 复刻，未改动任何生产文件）。合成边界 **204** 条，覆盖：
 
 - `rectsOverlap`：相切 / 恰好等于 gap / 略小于 gap / 负 gap / 包含 / 角接触 / 零尺寸 / 负尺寸 / NaN、Infinity（含非有限 gap）
 - `segmentIntersectsRect`：穿过 / 擦边 / 擦角 / 内含 / 在外 / 退化为一点 / gap 外扩恰到 / `start`/`end` 缺失（当前实现抛 TypeError，如实冻结）
@@ -45,6 +52,23 @@ node bin/archsvg.mjs test                     # 跑 parity（含另外两个自�
 > 已有条目的 `#seq`）：补齐 gap 缺省值、负 gap 收缩、最近段被选中并回指、阈值/长度 epsilon
 > 带的另一侧、同侧多段合并计数、曼哈顿段长、`target-stub` 位置、走廊等长候选的 tie-break
 > 等——这些是 `lib/geometry.spec.md` 每条断言所需的直接证据。
+>
+> 另有 **7 条「边界带」语料**（tag 前缀 `lead@`，编号 `#1301` 起，由 lead 在收尾阶段用参考实现
+> 直接算出并追加，**不在生成脚本里**——所以重跑生成脚本会丢掉它们，两侧 id 集合会不一致，
+> parity 的成对性断言会当场报错）。它们钉的是三处原先无覆盖的边界：
+>
+> | 条目 | 钉住的边界 | 基线值 |
+> |:---|:---|:---|
+> | `lead@collectLabelRouteClearance:degenerate-seg-inside-band#1301` | 平方长 9e-8 ≤ 1e-7 → 按点处理 | `clearance=0.00031622776601683794` |
+> | `…:degenerate-seg-above-band#1302` | 平方长 1.024e-7 > 1e-7 → 按线段投影 | `clearance=0.0003` |
+> | `…:degenerate-seg-exactly-at-band#1303` | 恰在阈值上 | `clearance=0.0004` |
+> | `lead@collectAmbiguousCorridors:axis-offset-within-epsilon#1304` | 轴线差 5e-5 ≤ 1e-4 → 视为同轴 | `overlapLength=80` |
+> | `…:axis-offset-beyond-epsilon#1305` | 轴线差 1.5e-4 > 1e-4 → 不同轴 | `[]` |
+> | `lead@collectBorderRuns:merge-gap-within-epsilon#1306` | 投影间隙 5e-5 | 两条独立命中（`40` / `59.99995`） |
+> | `…:merge-gap-beyond-epsilon#1307` | 投影间隙 1.5e-4 | 两条独立命中（`40` / `59.99985`） |
+>
+> `#1302` 是这几条里最关键的：把退化阈值退回 1e-14（即重写时那版误读的语义）时，
+> parity 立刻 `1/204` 红并指向它——它把「与参考实现对齐」这件事永久钉住了。
 
 ## ⚠️ 可证伪性验证（必做，且日后新增语料后要重做）
 
