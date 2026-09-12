@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 648 560" width="648" height="560" font-family="system-ui,-apple-system,BlinkMacSystemFont,&quot;Segoe UI&quot;,Roboto,sans-serif"><title>电商订单系统分层架构</title><desc>图 1-1 · 电商订单系统分层架构（接入 / 服务 / 存储）</desc><style>:root {
+<svg xmlns="http://www.w3.org/2000/svg" role="img" viewBox="0 0 648 560" width="648" height="560" font-family="system-ui,-apple-system,BlinkMacSystemFont,&quot;Segoe UI&quot;,Roboto,sans-serif"><title>电商订单系统分层架构</title><desc>图 1-1 · 电商订单系统分层架构（接入 / 服务 / 存储）</desc><style>:root {
 --canvas: #f8fafc;
 --panel: #ffffff;
 --panel-border: #e2e8f0;

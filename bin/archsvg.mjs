@@ -498,19 +498,33 @@ function cmdGuide(args) {
 
   // 2) 正向：打分制推荐
   const rec = recommendType(scene);
-  console.log(`推荐图类型：${rec.type}${rec.ambiguous ? '（有歧义，见下）' : ''}`);
+
+  // 并列时**不给「推荐」**：既然判定不了唯一类型，再报一个类型名就与「无法唯一判定」自相矛盾，
+  // 也会诱导调用方直接用那个。改为把全部并列项连同各自的理由/命中词/规则/骨架一次给全，
+  // 由调用方按判断依据二选一。
+  if (rec.ambiguous) {
+    console.log(`无法唯一判定：以下 ${rec.winners.length} 个类型并列最高分（各 ${rec.scores[rec.winners[0]]} 分）`);
+    for (const t of rec.winners) {
+      console.log(`  - ${t}：${REASON[t]}；命中关键词 ${rec.matched[t].join('、')}`);
+    }
+    console.log(`二选一的判断依据：${ambiguityHint(rec.winners)}`);
+    for (const t of rec.winners) {
+      const rules = TYPE_RULES[t];
+      console.log(`\n【${t}】最小必读规则（${rules.length} 条）：`);
+      rules.forEach((r, i) => console.log(`  ${i + 1}. ${r}`));
+      console.log(`【${t}】最简 IR 骨架：`);
+      console.log(SKELETONS[t]);
+    }
+    console.log('\n请按上面的判断依据二选一，再取该类型的骨架开工。');
+    return 0;
+  }
+
+  console.log(`推荐图类型：${rec.type}`);
   console.log(`理由：${REASON[rec.type]}`);
   if (rec.fallback) {
     console.log('命中关键词：（无）——未命中任何场景关键词，按兜底规则给 architecture');
   } else {
     console.log(`命中关键词：${rec.matched[rec.type].join('、')}`);
-  }
-  if (rec.ambiguous) {
-    console.log('⚠ 歧义提示：以下类型并列最高分，无法唯一判定：');
-    for (const t of rec.winners) {
-      console.log(`  - ${t}：命中 ${rec.matched[t].join('、')}（${rec.scores[t]} 分）`);
-    }
-    console.log(`二选一的判断依据：${ambiguityHint(rec.winners)}`);
   }
 
   const rules = TYPE_RULES[rec.type];
