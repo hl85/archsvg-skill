@@ -5,30 +5,115 @@
     "title": "CI 发布流水线",
     "caption": "图 2-1 · CI 发布流水线（提交 → 构建 → 验证 → 发布）",
     "locale": "zh-CN",
-    "viewBox": [1000, 480],
+    "viewBox": [
+      880,
+      358
+    ],
     "roleBudget": {
       "reason": "流水线含能力域构建、控制域编排、interaction 制品契约、warn 拦截与 neutral 基础设施，五域对应真实角色分工",
-      "roles": ["capability", "control", "interaction", "neutral", "warn"]
+      "roles": [
+        "capability",
+        "control",
+        "interaction",
+        "neutral",
+        "warn"
+      ]
     }
   },
   "stages": [
-    { "id": "commit", "label": "提交", "role": "neutral" },
-    { "id": "build", "label": "构建", "role": "capability" },
-    { "id": "verify", "label": "验证", "role": "control" },
-    { "id": "release", "label": "发布", "role": "interaction" }
+    {
+      "id": "commit",
+      "label": "提交",
+      "role": "neutral"
+    },
+    {
+      "id": "build",
+      "label": "构建",
+      "role": "capability"
+    },
+    {
+      "id": "verify",
+      "label": "验证",
+      "role": "control"
+    },
+    {
+      "id": "release",
+      "label": "发布",
+      "role": "interaction"
+    }
   ],
   "nodes": [
-    { "id": "git-push", "label": "Git Push", "sublabel": "触发流水线", "role": "interaction", "kind": "start", "stage": "commit" },
-    { "id": "compile", "label": "Build", "sublabel": "编译 + 单测", "role": "capability", "kind": "step", "stage": "build" },
-    { "id": "gate", "label": "QualityGate", "sublabel": "覆盖率门禁", "role": "control", "kind": "decision", "stage": "verify" },
-    { "id": "deploy", "label": "Deploy", "sublabel": "灰度 10% 起步", "role": "capability", "kind": "step", "stage": "release" },
-    { "id": "rollback", "label": "Rollback", "sublabel": "异常自动回滚", "role": "warn", "kind": "terminal", "stage": "release" }
+    {
+      "id": "git-push",
+      "label": "Git Push",
+      "sublabel": "触发流水线",
+      "role": "interaction",
+      "kind": "start",
+      "stage": "commit"
+    },
+    {
+      "id": "compile",
+      "label": "Build",
+      "sublabel": "编译 + 单测",
+      "role": "capability",
+      "kind": "step",
+      "stage": "build"
+    },
+    {
+      "id": "gate",
+      "label": "QualityGate",
+      "sublabel": "覆盖率门禁",
+      "role": "control",
+      "kind": "decision",
+      "stage": "verify"
+    },
+    {
+      "id": "deploy",
+      "label": "Deploy",
+      "sublabel": "灰度 10% 起步",
+      "role": "capability",
+      "kind": "step",
+      "stage": "release"
+    },
+    {
+      "id": "rollback",
+      "label": "Rollback",
+      "sublabel": "异常自动回滚",
+      "role": "warn",
+      "kind": "terminal",
+      "stage": "release"
+    }
   ],
   "edges": [
-    { "from": "git-push", "to": "compile", "label": "push 事件", "kind": "sync" },
-    { "from": "compile", "to": "gate", "label": "构建产物", "kind": "data" },
-    { "from": "gate", "to": "deploy", "label": "门禁通过", "kind": "sync" },
-    { "from": "gate", "to": "compile", "label": "失败·修复重跑", "kind": "fallback" },
-    { "from": "deploy", "to": "rollback", "label": "指标越限", "kind": "fallback" }
+    {
+      "from": "git-push",
+      "to": "compile",
+      "label": "push 事件",
+      "kind": "sync"
+    },
+    {
+      "from": "compile",
+      "to": "gate",
+      "label": "构建产物",
+      "kind": "data"
+    },
+    {
+      "from": "gate",
+      "to": "deploy",
+      "label": "门禁通过",
+      "kind": "sync"
+    },
+    {
+      "from": "gate",
+      "to": "compile",
+      "label": "失败·修复重跑",
+      "kind": "fallback"
+    },
+    {
+      "from": "deploy",
+      "to": "rollback",
+      "label": "指标越限",
+      "kind": "fallback"
+    }
   ]
 }

@@ -6,12 +6,17 @@
     "caption": "图 1-1 · 电商订单系统分层架构（接入 / 服务 / 存储）",
     "locale": "zh-CN",
     "viewBox": [
-      900,
-      500
+      648,
+      560
     ],
     "roleBudget": {
       "reason": "三层架构叠加存储层中性基础设施；neutral 表『非业务域』，压缩会丢掉分层语义",
-      "roles": ["capability", "control", "interaction", "neutral"]
+      "roles": [
+        "capability",
+        "control",
+        "interaction",
+        "neutral"
+      ]
     }
   },
   "groups": [

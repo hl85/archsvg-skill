@@ -5,24 +5,93 @@
     "title": "OAuth 2.0 授权码模式登录时序",
     "caption": "图 3-1 · OAuth 2.0 授权码模式：浏览器首次登录完整时序",
     "locale": "zh-CN",
-    "viewBox": [860, 560]
+    "viewBox": [
+      786,
+      670
+    ]
   },
   "participants": [
-    { "id": "browser", "label": "浏览器", "role": "interaction" },
-    { "id": "webapp", "label": "WebApp 后端", "role": "control" },
-    { "id": "auth", "label": "AuthService", "role": "control" },
-    { "id": "res", "label": "ResourceAPI", "role": "capability" }
+    {
+      "id": "browser",
+      "label": "浏览器",
+      "role": "interaction"
+    },
+    {
+      "id": "webapp",
+      "label": "WebApp 后端",
+      "role": "control"
+    },
+    {
+      "id": "auth",
+      "label": "AuthService",
+      "role": "control"
+    },
+    {
+      "id": "res",
+      "label": "ResourceAPI",
+      "role": "capability"
+    }
   ],
   "messages": [
-    { "from": "browser", "to": "webapp", "label": "GET /profile（未登录）", "kind": "sync" },
-    { "from": "webapp", "to": "browser", "label": "302 → 授权页", "kind": "return" },
-    { "from": "browser", "to": "auth", "label": "GET /authorize", "kind": "sync" },
-    { "from": "auth", "to": "browser", "label": "302 + code 回调", "kind": "return" },
-    { "from": "browser", "to": "webapp", "label": "GET /callback?code", "kind": "sync" },
-    { "from": "webapp", "to": "auth", "label": "POST /token（code 换令牌）", "kind": "sync" },
-    { "from": "auth", "to": "webapp", "label": "access_token", "kind": "return" },
-    { "from": "webapp", "to": "res", "label": "GET /user（Bearer）", "kind": "sync" },
-    { "from": "res", "to": "webapp", "label": "用户资源", "kind": "return" },
-    { "from": "webapp", "to": "browser", "label": "200 渲染个人页", "kind": "return" }
+    {
+      "from": "browser",
+      "to": "webapp",
+      "label": "GET /profile（未登录）",
+      "kind": "sync"
+    },
+    {
+      "from": "webapp",
+      "to": "browser",
+      "label": "302 → 授权页",
+      "kind": "return"
+    },
+    {
+      "from": "browser",
+      "to": "auth",
+      "label": "GET /authorize",
+      "kind": "sync"
+    },
+    {
+      "from": "auth",
+      "to": "browser",
+      "label": "302 + code 回调",
+      "kind": "return"
+    },
+    {
+      "from": "browser",
+      "to": "webapp",
+      "label": "GET /callback?code",
+      "kind": "sync"
+    },
+    {
+      "from": "webapp",
+      "to": "auth",
+      "label": "POST /token（code 换令牌）",
+      "kind": "sync"
+    },
+    {
+      "from": "auth",
+      "to": "webapp",
+      "label": "access_token",
+      "kind": "return"
+    },
+    {
+      "from": "webapp",
+      "to": "res",
+      "label": "GET /user（Bearer）",
+      "kind": "sync"
+    },
+    {
+      "from": "res",
+      "to": "webapp",
+      "label": "用户资源",
+      "kind": "return"
+    },
+    {
+      "from": "webapp",
+      "to": "browser",
+      "label": "200 渲染个人页",
+      "kind": "return"
+    }
   ]
 }
