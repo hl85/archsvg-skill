@@ -1,44 +1,37 @@
 # 第三方代码声明（Third-Party Notices）
 
-本 skill 在 `lib/` 下 vendored（内嵌）了开源项目 **archify** 的两个零依赖内核模块。
-其余全部代码均为 archsvg 自研，未包含任何第三方代码。
+## 结论：本 skill 不含任何第三方代码
 
-## 被 vendored 的第三方代码
+`archsvg` 的全部源码（含 `bin/`、`lib/`、`schemas/`、`tests/`）均为本项目自研，
+**未内嵌、未复制、未改写**任何第三方代码，因此不需要保留任何上游归属声明。
 
-| 项目 | 许可证 | 作者 / 上游 | 来源版本 | 原始路径 |
-|:---|:---|:---|:---|:---|
-| archify | MIT | tt-a1i | v2.17.0-dev.1 | `renderers/shared/geometry.mjs` |
-| archify | MIT | tt-a1i | v2.17.0-dev.1 | `renderers/shared/diagnostics.mjs` |
+## 历史沿革（为什么这个文件以前不这么写）
 
-- 仓库地址：https://github.com/tt-a1i/archify
-- archify 自身基于 **Cocoon-AI/architecture-diagram-generator**（MIT, v1.0）的方法论。
+2026-09-10 首次发布时，`lib/` 下曾 vendored 过开源项目
+[archify](https://github.com/tt-a1i/archify)（MIT，作者 tt-a1i）的两个零依赖内核模块
+（`geometry.mjs` / `diagnostics.mjs`，来源版本 `v2.17.0-dev.1`）。
 
-## vendored 的具体文件与处理方式
+实测发现该依赖**只用到约 34%**（40 个导出里仅 7 个被实际调用），
+而另外 66%（上游的自动修复族、诊断录制、上游渲染词汇）从未被触达；
+同时「禁止修改 vendor」与「无上游跟踪机制」叠加，使被用到的那部分一旦需要修 bug
+就只能整体重新 vendor 整个文件。
 
-- `archsvg/lib/geometry.mjs` ← `renderers/shared/geometry.mjs`
-- `archsvg/lib/diagnostics.mjs` ← `renderers/shared/diagnostics.mjs`
+2026-09-12 因此做了**净室重写**：只保留实际需要的行为，由本项目重新实现，
+vendored 的两个文件随之删除，本声明中对应条目一并撤销。
 
-处理方式：
+## 净室重写是怎么做的（可追溯）
 
-1. **逻辑未修改**：除在两个文件最顶部追加了一段归属注释头（attribution header）外，
-   代码内容、导出名、相对 import 路径（`./diagnostics.mjs`）均保持原样。
-2. `geometry.mjs` 通过 `./diagnostics.mjs` 相对引用 `diagnostics.mjs`，两者同处 `lib/`，
-   相对路径天然成立，无需改动。
-3. 归属注释头示例：
+| 环节 | 产物 | 说明 |
+|:---|:---|:---|
+| 行为冻结 | `tests/fixtures/geometry-{corpus,golden}.json` | 用**当时的参考实现**跑出 1278 条「输入 → 正确输出」基线 |
+| 差分测试 | `tests/geometry-parity.test.mjs` | 任何实现都拿这份冻结基线逐条比对（相对容差 1e-9） |
+| 行为规格 | `lib/geometry.spec.md` | 从参考实现反推的**黑盒契约**：只描述「输入 → 输出、在什么条件下」，不含代码、伪代码与内部标识符 |
+| 独立实现 | `lib/geometry.mjs` | 由**未接触过参考实现**的一方，仅依据规格与冻结基线写成 |
 
-   ```
-   /*
-    * Vendored from archify (MIT) — https://github.com/tt-a1i/archify
-    * Source: renderers/shared/<name>.mjs @ v2.17.0-dev.1
-    * Upstream: tt-a1i; based on Cocoon-AI/architecture-diagram-generator (MIT, v1.0)
-    * Vendored: 2026-09-10. Logic unmodified; do not reformat.
-    */
-   ```
-
-## archify 的其余依赖
-
-archify 项目（除被 vendored 的两个零依赖内核模块外）可能还依赖其他第三方代码库。
-相关依赖的许可证与声明以 archify 上游仓库为准，本 skill 不复制、不使用 archify 的其余部分。
+- 验收门槛是「冻结基线全过」且「5 个样例渲染产物逐字节不变」——行为等价的最硬证明。
+- 基线文件自 2026-09-12 起**冻结**：参考实现已移除，任何重生成都会把判据换成本实现自己的输出。
+  `tests/tools/capture-geometry-golden.mjs` 因此加了硬闸门（须显式提供参考实现且 sha256 匹配，
+  否则拒绝运行）；相关说明见 `tests/README-geometry-parity.md`。
 
 ---
 

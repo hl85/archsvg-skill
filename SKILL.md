@@ -49,7 +49,8 @@ agent_created: true
 
 - ❌ 用裁剪内容、缩小字号、`overflow:hidden` 伪造检查通过。
 - ❌ 在验证失败时产出 SVG 文件（`render` 验证不过绝不写盘）。
-- ❌ 修改 vendor 的 `lib/geometry.mjs` / `lib/diagnostics.mjs`（归属 archify，仅可追加归属头）。
+- ❌ 未经 `archsvg test` 通过就改动 `lib/geometry.mjs`：它的行为由 1278 条冻结基线锁定，改完必须全过；
+  也不得重跑 `tests/tools/` 下的基线生成脚本（会把判据换成实现自己的输出）。
 - ❌ 在 IR 里手写坐标（`pos`/`x`/`y` 等由布局器生成）。
 - ❌ 依赖任何外部 skill 文件，或让 IR 语义耦合某个具体业务领域。
 - ❌ 引入任何 npm 依赖。
@@ -100,6 +101,6 @@ archsvg render   <type> <input.json> <output.svg> [--quality standard|showcase] 
 | `lib/theme.mjs` | 配色 token、CSS 生成（字号由 `typography.mjs` 注入） | 影响 `theme_readable` 对比度 |
 | `lib/layout.mjs` | 自动布局（纯计算） | 坐标改动须同时平移 `cx/cy`（`node_text_in_box` 会拦） |
 | `lib/render.mjs` | IR → SVG 字符串 | **不得出现裸数值**，全部引用常量模块 |
-| `lib/geometry.mjs` / `lib/diagnostics.mjs` | vendor（archify，MIT） | **禁止修改**，仅可追加归属头 |
+| `lib/geometry.mjs` | 自研几何内核（8 个导出） | 可改，但**必须先过 `tests/geometry-parity.test.mjs`**（1278 条冻结基线） |
 | `tests/*.test.mjs` | 零依赖断言（`archsvg test`） | 改上面任一项后必跑 |
 | `tests/*.tool.mjs` | 需 headless 浏览器的工具，不属 `archsvg test` | 改度量/渲染后手动跑 |

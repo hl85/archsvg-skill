@@ -143,12 +143,12 @@ archsvg/
 ├── SKILL.md                     # 技能入口（供 Agent 发现与加载）
 ├── README.md                    # 本文件
 ├── LICENSE                      # MIT
-├── THIRD_PARTY_NOTICES.md       # 第三方 vendored 代码声明
+├── THIRD_PARTY_NOTICES.md       # 第三方代码声明（当前为空：全部自研）
 ├── package.json                 # { name, type: module, private: true }
 ├── bin/archsvg.mjs              # CLI 入口
 ├── lib/
-│   ├── geometry.mjs             # vendor 自 archify（仅追加归属头，逻辑未改）
-│   ├── diagnostics.mjs          # vendor 自 archify（仅追加归属头，逻辑未改）
+│   ├── geometry.mjs             # 自研几何内核（净室重写；8 个导出，行为由冻结基线锁定）
+│   ├── geometry.spec.md         # 上述模块的黑盒行为规格（净室重写时用）
 │   ├── theme.mjs                # 配色 token 与明暗双模
 │   ├── layout.mjs               # 自动布局（正交路由、阶段带、回边绕行）
 │   ├── render.mjs               # 静态 SVG 渲染
@@ -157,6 +157,10 @@ archsvg/
 │       ├── composition.mjs      # 构图检查 11 项
 │       └── document.mjs         # 文档集成检查 14 项
 ├── schemas/{common,architecture,flow,sequence}.schema.json
+├── tests/                       # 零依赖测试（archsvg test）
+│   ├── geometry-parity.test.mjs #   几何行为基线差分测试（1278 条，判据来源）
+│   ├── fixtures/                #   冻结的行为基线（语料 + golden）
+│   └── tools/                   #   基线的生成脚本（已加硬闸门，默认拒绝运行）
 ├── examples/                    # 各类型最小示例 IR（Schema 对照用）
 ├── samples/                     # 成品样例画廊（IR + 已渲染 SVG，覆盖全部类型与变体）
 └── references/
@@ -178,22 +182,48 @@ archsvg/
 3. **有界诚实**：修不好就如实报告，不允许伪造通过。
 4. **自包含**：无运行时依赖，产物可脱离本工具独立使用。
 
-## Vendor 与授权
+## 第三方代码与几何内核
 
-`lib/geometry.mjs` 与 `lib/diagnostics.mjs` 原样 vendored 自开源项目
-[archify](https://github.com/tt-a1i/archify)（MIT，作者 tt-a1i，基于
-Cocoon-AI/architecture-diagram-generator MIT v1.0），来源版本 `v2.17.0-dev.1`。
-除文件头追加归属注释外**逻辑未修改**。详见 `THIRD_PARTY_NOTICES.md`。
+**本 skill 不含任何第三方代码**，全部源码自研（详见 `THIRD_PARTY_NOTICES.md`）。
 
-archsvg 自身以 MIT 发布。
+`lib/geometry.mjs` 是自研的几何内核，对外恰好 8 个导出：
+坐标有限性判定、矩形相交、线段-矩形相交、路由首末段方向合规，以及四个「收集器」
+（标签净空、走廊歧义、边框贴边、路由节奏）。
 
-### 环境变量 `ARCHIFY_DIAGNOSTIC_FORMAT`
+它的行为**不由文档描述、而由冻结基线锁定**：`tests/fixtures/geometry-golden.json`
+记录了 1278 条「输入 → 正确输出」，`tests/geometry-parity.test.mjs` 逐条比对
+（相对容差 1e-9）。改这个模块前请先读 `lib/geometry.spec.md`（黑盒契约）
+并跑 `archsvg test`。
 
-沿用上游同名环境变量（改名会破坏 vendored 逻辑）。设为 `json` 时进入诊断录制模式：
-`installRendererDiagnosticBoundary()` 注册 `uncaughtException` 处理器，把诊断以 JSON
-写入 stderr 并退出。archsvg 自研模块不依赖该变量，仅保留语义以兼容上游代码。
+> ⚠️ 冻结基线**不可重生成**：生成它用的参考实现已移除，重跑生成脚本只会把判据换成
+> 实现自己的输出。`tests/tools/capture-geometry-golden.mjs` 因此有硬闸门
+> （须显式提供参考实现且 sha256 匹配），默认拒绝运行。
+
+## 环境变量
+
+**无。** 本工具不读取任何环境变量（历史上曾沿用上游一个诊断录制开关，随 vendored
+代码一并移除）。
 
 ## 版本
+
+**v0.1.5** —— 去掉 vendored 的第三方几何内核，改为净室自研（本 skill 自此不含任何第三方代码）：
+
+- 移除 `lib/geometry.mjs`（vendored，1430 行）与 `lib/diagnostics.mjs`（134 行）；
+  新 `lib/geometry.mjs` 为 547 行自研实现，对外恰好 8 个导出。
+- 起因：实测该 vendored 依赖**只用到约 34%**（40 个导出里 7 个被实际调用），
+  其余是上游的自动修复族、诊断录制与其渲染词汇；而「禁止修改 vendor」+「无上游跟踪机制」
+  叠加，使被用到的那部分出 bug 时只能整体重新 vendor。
+- 流程：**行为冻结 → 差分测试 → 黑盒规格 → 独立实现**。
+  `tests/fixtures/geometry-golden.json` 用参考实现跑出 1278 条基线；
+  `lib/geometry.spec.md` 是从参考实现反推的黑盒契约（不含代码/伪代码/内部标识符）；
+  实现由未接触过参考实现的一方仅凭规格与基线写成。
+- 验收：冻结基线 **1278/1278** 全过，且 5 个样例渲染产物**逐字节不变**。
+- 另修一处规格误读导致的边界分歧：点—线段距离的退化判定参考实现比较的是**平方**长度，
+  等效长度阈值 ≈3.16e-4（原规格写成 1e-7），已对齐并补 7 条边界语料钉住。
+- 两个基线生成脚本加**硬闸门**（参考实现 sha256 校验 / `--force`），防止有人重跑后把判据
+  换成实现自己的输出、使 parity 退化成永远为真。
+- `doctor` 新增三项：`lib/geometry.mjs` 导出面与契约一致、已淘汰的 vendored 文件不存在、
+  几何行为基线齐备。
 
 **v0.1.4** —— 新增 5 项文档侧检查（20 → 25 项），并把「画幅体检」从人工判据变成可断言契约：
 

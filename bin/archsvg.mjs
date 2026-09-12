@@ -24,7 +24,14 @@ const SKILL_ROOT = path.dirname(path.dirname(fileURLToPath(BIN_URL)));
 const SCHEMAS_DIR = path.join(SKILL_ROOT, 'schemas');
 const LIB_DIR = path.join(SKILL_ROOT, 'lib');
 const EXAMPLES_DIR = path.join(SKILL_ROOT, 'examples');
-const VENDOR_FILES = ['geometry.mjs', 'diagnostics.mjs'];
+// 自研核心模块：doctor 断言其存在且导出面完整。
+// 净室重写（2026-09-12）后 lib/ 下不再有 vendored 代码——见 THIRD_PARTY_NOTICES.md。
+const CORE_FILES = ['geometry.mjs'];
+// 几何模块的对外导出面必须恰好是这些（多一个少一个都说明契约被动过）。
+const GEOMETRY_EXPORTS = ['isFinitePoint', 'rectsOverlap', 'segmentIntersectsRect', 'routeHonorsEndpointSides',
+  'collectLabelRouteClearance', 'collectAmbiguousCorridors', 'collectBorderRuns', 'collectRouteRhythmIssues'];
+// 已被净室重写淘汰的 vendored 文件：断言它们**不存在**，防止被误加回来。
+const REMOVED_VENDOR_FILES = ['diagnostics.mjs'];
 
 const importFrom = (rel) => import(new URL(rel, BIN_URL).href);
 
@@ -751,7 +758,7 @@ async function cmdDoctor() {
     '../lib/theme.mjs', '../lib/typography.mjs', '../lib/text-metrics.mjs', '../lib/markers.mjs',
     '../lib/layout.mjs', '../lib/render.mjs', '../lib/schema.mjs',
     '../lib/checks/composition.mjs', '../lib/checks/document.mjs',
-    '../lib/geometry.mjs', '../lib/diagnostics.mjs',
+    '../lib/geometry.mjs',
   ];
   for (const m of libModules) {
     items.push(check(`import ${m}`, async () => {
@@ -761,14 +768,36 @@ async function cmdDoctor() {
     }));
   }
 
-  // 5) vendor 文件存在
-  for (const f of VENDOR_FILES) {
+  // 5) 自研核心文件存在，且几何模块的导出面与契约一致
+  for (const f of CORE_FILES) {
     items.push(check(`lib/${f}`, () => {
       const p = path.join(LIB_DIR, f);
       if (!existsSync(p)) throw new Error('文件不存在');
       return '存在';
     }));
   }
+  items.push(check('lib/geometry.mjs 导出面', async () => {
+    const mod = await importFrom('../lib/geometry.mjs');
+    const got = Object.keys(mod).filter((k) => typeof mod[k] === 'function').sort();
+    const want = [...GEOMETRY_EXPORTS].sort();
+    const missing = want.filter((k) => !got.includes(k));
+    const extra = got.filter((k) => !want.includes(k));
+    if (missing.length || extra.length) {
+      throw new Error(`导出面与契约不符：缺少 [${missing.join(', ')}]；多出 [${extra.join(', ')}]`);
+    }
+    return `${got.length} 个导出，与契约一致`;
+  }));
+  items.push(check('已淘汰的 vendored 文件不存在', () => {
+    const still = REMOVED_VENDOR_FILES.filter((f) => existsSync(path.join(LIB_DIR, f)));
+    if (still.length) throw new Error(`这些文件应已被净室重写淘汰，却仍然存在：${still.join(', ')}`);
+    return `已确认 ${REMOVED_VENDOR_FILES.join(', ')} 均不存在`;
+  }));
+  items.push(check('几何行为基线存在', () => {
+    const dir = path.join(SKILL_ROOT, 'tests', 'fixtures');
+    const files = ['geometry-corpus.json', 'geometry-golden.json'];
+    for (const f of files) if (!existsSync(path.join(dir, f))) throw new Error(`缺少 ${f}`);
+    return '语料与 golden 齐备';
+  }));
 
   // 6) 文档常量 ↔ 代码常量
   items.push(check('docs 常量 ↔ 代码常量', checkDocsConsistency));
