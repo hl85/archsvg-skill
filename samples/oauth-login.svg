@@ -7,20 +7,25 @@
 --arrow: #94a3b8;
 --grid: #e2e8f0;
 --role-control-fill: #fdf4ff;
---role-control-stroke: #a855f7;
+--role-control-stroke: #7e22ce;
 --role-control-text: #7e22ce;
+--frame-control-fill: #fefaff;
 --role-capability-fill: #f0fdf4;
---role-capability-stroke: #22c55e;
+--role-capability-stroke: #166534;
 --role-capability-text: #166534;
+--frame-capability-fill: #f8fefa;
 --role-interaction-fill: #eff6ff;
---role-interaction-stroke: #3b82f6;
+--role-interaction-stroke: #1e40af;
 --role-interaction-text: #1e40af;
+--frame-interaction-fill: #f7fbff;
 --role-warn-fill: #fef2f2;
---role-warn-stroke: #ef4444;
+--role-warn-stroke: #b91c1c;
 --role-warn-text: #b91c1c;
+--frame-warn-fill: #fff9f9;
 --role-neutral-fill: #f8fafc;
---role-neutral-stroke: #94a3b8;
+--role-neutral-stroke: #334155;
 --role-neutral-text: #334155;
+--frame-neutral-fill: #fcfdfe;
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -34,18 +39,23 @@
   --role-control-fill: rgba(168,85,247,0.18);
   --role-control-stroke: #c084fc;
   --role-control-text: #e9d5ff;
+  --frame-control-fill: rgba(168,85,247,0.1);
   --role-capability-fill: rgba(74,222,128,0.16);
   --role-capability-stroke: #4ade80;
   --role-capability-text: #bbf7d0;
+  --frame-capability-fill: rgba(74,222,128,0.1);
   --role-interaction-fill: rgba(96,165,250,0.16);
   --role-interaction-stroke: #60a5fa;
   --role-interaction-text: #dbeafe;
+  --frame-interaction-fill: rgba(96,165,250,0.1);
   --role-warn-fill: rgba(239,68,68,0.16);
   --role-warn-stroke: #f87171;
   --role-warn-text: #fecaca;
+  --frame-warn-fill: rgba(239,68,68,0.1);
   --role-neutral-fill: rgba(148,163,184,0.14);
   --role-neutral-stroke: #94a3b8;
   --role-neutral-text: #cbd5e1;
+  --frame-neutral-fill: rgba(148,163,184,0.1);
   }
 }
 
@@ -69,11 +79,16 @@ text { stroke: none; }
 .arrow-line { fill: none; stroke: var(--arrow); stroke-width: 1.4; }
 .role-control { fill: var(--role-control-fill); stroke: var(--role-control-stroke); }
 .role-control .node { fill: var(--role-control-fill); stroke: var(--role-control-stroke); }
+.frame-control { fill: var(--frame-control-fill); }
 .role-capability { fill: var(--role-capability-fill); stroke: var(--role-capability-stroke); }
 .role-capability .node { fill: var(--role-capability-fill); stroke: var(--role-capability-stroke); }
+.frame-capability { fill: var(--frame-capability-fill); }
 .role-interaction { fill: var(--role-interaction-fill); stroke: var(--role-interaction-stroke); }
 .role-interaction .node { fill: var(--role-interaction-fill); stroke: var(--role-interaction-stroke); }
+.frame-interaction { fill: var(--frame-interaction-fill); }
 .role-warn { fill: var(--role-warn-fill); stroke: var(--role-warn-stroke); }
 .role-warn .node { fill: var(--role-warn-fill); stroke: var(--role-warn-stroke); }
+.frame-warn { fill: var(--frame-warn-fill); }
 .role-neutral { fill: var(--role-neutral-fill); stroke: var(--role-neutral-stroke); }
-.role-neutral .node { fill: var(--role-neutral-fill); stroke: var(--role-neutral-stroke); }</style><style>.edge-label-bg{fill:var(--canvas);stroke:none;}</style><defs><marker id="arrow" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path class="arrow-fill" d="M0,0 L8,4 L0,8 Z"/></marker><marker id="arrow-async" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path class="arrow-line" d="M0,0 L8,4 L0,8"/></marker><marker id="arrow-fallback" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path class="arrow-line" d="M0,0 L8,4 L0,8"/></marker></defs><text class="title" x="393" y="32" text-anchor="middle">OAuth 2.0 授权码模式登录时序</text><path class="lifeline" d="M 71.94 96 L 71.94 556"/><path class="lifeline" d="M 279.82 96 L 279.82 556"/><path class="lifeline" d="M 487.7 96 L 487.7 556"/><path class="lifeline" d="M 695.58 96 L 695.58 556"/><path class="edge" d="M 71.94 108 L 279.82 108" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="102.18" y="112.5" width="147.64" height="19" rx="3"/><text class="edge-label" x="176" y="122" text-anchor="middle">GET /profile（未登录）</text><path class="edge edge-dashed" d="M 279.82 152 L 71.94 152" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="135.6" y="156.5" width="80.8" height="19" rx="3"/><text class="edge-label" x="176" y="166" text-anchor="middle">302 → 授权页</text><path class="edge" d="M 71.94 196 L 487.7 196" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="295.4" y="186.5" width="101.2" height="19" rx="3"/><text class="edge-label" x="346" y="196" text-anchor="middle">GET /authorize</text><path class="edge edge-dashed" d="M 487.7 240 L 71.94 240" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="295.68" y="230.5" width="96.64" height="19" rx="3"/><text class="edge-label" x="344" y="240" text-anchor="middle">302 + code 回调</text><path class="edge" d="M 71.94 284 L 279.82 284" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="113.04" y="288.5" width="125.92" height="19" rx="3"/><text class="edge-label" x="176" y="298" text-anchor="middle">GET /callback?code</text><path class="edge" d="M 279.82 328 L 487.7 328" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="298.06" y="332.5" width="171.88" height="19" rx="3"/><text class="edge-label" x="384" y="342" text-anchor="middle">POST /token（code 换令牌）</text><path class="edge edge-dashed" d="M 487.7 372 L 279.82 372" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="340.72" y="376.5" width="86.56" height="19" rx="3"/><text class="edge-label" x="384" y="386" text-anchor="middle">access_token</text><path class="edge" d="M 279.82 416 L 695.58 416" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="503.44" y="406.5" width="133.12" height="19" rx="3"/><text class="edge-label" x="570" y="416" text-anchor="middle">GET /user（Bearer）</text><path class="edge edge-dashed" d="M 695.58 460 L 279.82 460" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="503.24" y="450.5" width="57.52" height="19" rx="3"/><text class="edge-label" x="532" y="460" text-anchor="middle">用户资源</text><path class="edge edge-dashed" d="M 279.82 504 L 71.94 504" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="128.58" y="508.5" width="94.84" height="19" rx="3"/><text class="edge-label" x="176" y="518" text-anchor="middle">200 渲染个人页</text><g class="role-interaction"><rect class="node" x="24" y="56" width="96" height="42" rx="8"/><text class="n-label" x="72" y="77" text-anchor="middle">浏览器</text></g><g class="role-control"><rect class="node" x="220" y="56" width="120" height="42" rx="8"/><text class="n-label" x="280" y="77" text-anchor="middle">WebApp 后端</text></g><g class="role-control"><rect class="node" x="424" y="56" width="128" height="42" rx="8"/><text class="n-label" x="488" y="77" text-anchor="middle">AuthService</text></g><g class="role-capability"><rect class="node" x="630" y="56" width="132" height="42" rx="8"/><text class="n-label" x="696" y="77" text-anchor="middle">ResourceAPI</text></g><g class="legend"><rect class="legend-box" x="624" y="572" width="138" height="48" rx="6"/><rect class="role-control" x="634" y="575" width="14" height="14" rx="3"/><text class="legend-label" x="656" y="584" text-anchor="start">控制</text><rect class="role-capability" x="699.76" y="575" width="14" height="14" rx="3"/><text class="legend-label" x="721.76" y="584" text-anchor="start">能力</text><rect class="role-interaction" x="634" y="593" width="14" height="14" rx="3"/><text class="legend-label" x="656" y="602" text-anchor="start">交互</text></g><text class="caption" x="393" y="659" text-anchor="middle">图 3-1 · OAuth 2.0 授权码模式：浏览器首次登录完整时序</text></svg>
+.role-neutral .node { fill: var(--role-neutral-fill); stroke: var(--role-neutral-stroke); }
+.frame-neutral { fill: var(--frame-neutral-fill); }</style><style>.edge-label-bg{fill:var(--canvas);stroke:none;}</style><defs><marker id="arrow" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path class="arrow-fill" d="M0,0 L8,4 L0,8 Z"/></marker><marker id="arrow-async" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path class="arrow-line" d="M0,0 L8,4 L0,8"/></marker><marker id="arrow-fallback" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path class="arrow-line" d="M0,0 L8,4 L0,8"/></marker></defs><text class="title" x="393" y="32" text-anchor="middle">OAuth 2.0 授权码模式登录时序</text><path class="lifeline" d="M 71.94 96 L 71.94 556"/><path class="lifeline" d="M 279.82 96 L 279.82 556"/><path class="lifeline" d="M 487.7 96 L 487.7 556"/><path class="lifeline" d="M 695.58 96 L 695.58 556"/><path class="edge" d="M 71.94 108 L 279.82 108" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="102.18" y="112.5" width="147.64" height="19" rx="3"/><text class="edge-label" x="176" y="122" text-anchor="middle">GET /profile（未登录）</text><path class="edge edge-dashed" d="M 279.82 152 L 71.94 152" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="135.6" y="156.5" width="80.8" height="19" rx="3"/><text class="edge-label" x="176" y="166" text-anchor="middle">302 → 授权页</text><path class="edge" d="M 71.94 196 L 487.7 196" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="295.4" y="186.5" width="101.2" height="19" rx="3"/><text class="edge-label" x="346" y="196" text-anchor="middle">GET /authorize</text><path class="edge edge-dashed" d="M 487.7 240 L 71.94 240" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="295.68" y="230.5" width="96.64" height="19" rx="3"/><text class="edge-label" x="344" y="240" text-anchor="middle">302 + code 回调</text><path class="edge" d="M 71.94 284 L 279.82 284" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="113.04" y="288.5" width="125.92" height="19" rx="3"/><text class="edge-label" x="176" y="298" text-anchor="middle">GET /callback?code</text><path class="edge" d="M 279.82 328 L 487.7 328" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="298.06" y="332.5" width="171.88" height="19" rx="3"/><text class="edge-label" x="384" y="342" text-anchor="middle">POST /token（code 换令牌）</text><path class="edge edge-dashed" d="M 487.7 372 L 279.82 372" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="340.72" y="376.5" width="86.56" height="19" rx="3"/><text class="edge-label" x="384" y="386" text-anchor="middle">access_token</text><path class="edge" d="M 279.82 416 L 695.58 416" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="503.44" y="406.5" width="133.12" height="19" rx="3"/><text class="edge-label" x="570" y="416" text-anchor="middle">GET /user（Bearer）</text><path class="edge edge-dashed" d="M 695.58 460 L 279.82 460" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="503.24" y="450.5" width="57.52" height="19" rx="3"/><text class="edge-label" x="532" y="460" text-anchor="middle">用户资源</text><path class="edge edge-dashed" d="M 279.82 504 L 71.94 504" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="128.58" y="508.5" width="94.84" height="19" rx="3"/><text class="edge-label" x="176" y="518" text-anchor="middle">200 渲染个人页</text><g class="role-interaction"><rect class="node" x="24" y="56" width="96" height="42" rx="8"/><text class="n-label" x="72" y="77" text-anchor="middle">浏览器</text></g><g class="role-control"><rect class="node" x="220" y="56" width="120" height="42" rx="8"/><text class="n-label" x="280" y="77" text-anchor="middle">WebApp 后端</text></g><g class="role-control"><rect class="node" x="424" y="56" width="128" height="42" rx="8"/><text class="n-label" x="488" y="77" text-anchor="middle">AuthService</text></g><g class="role-capability"><rect class="node" x="630" y="56" width="132" height="42" rx="8"/><text class="n-label" x="696" y="77" text-anchor="middle">ResourceAPI</text></g><g class="legend"><rect class="legend-box" x="624" y="572" width="138" height="48" rx="6"/><rect class="role-control" x="634" y="575" width="14" height="14" rx="3"/><text class="legend-label" x="656" y="584" text-anchor="start">控制</text><rect class="role-capability" x="699.76" y="575" width="14" height="14" rx="3"/><text class="legend-label" x="721.76" y="584" text-anchor="start">能力</text><rect class="role-interaction" x="634" y="593" width="14" height="14" rx="3"/><text class="legend-label" x="656" y="602" text-anchor="start">交互</text></g><text class="caption" x="393" y="659" text-anchor="middle">图 3-1 · OAuth 2.0 授权码模式：浏览器首次登录完整时序</text></svg>

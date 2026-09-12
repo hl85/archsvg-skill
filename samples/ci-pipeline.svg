@@ -7,20 +7,25 @@
 --arrow: #94a3b8;
 --grid: #e2e8f0;
 --role-control-fill: #fdf4ff;
---role-control-stroke: #a855f7;
+--role-control-stroke: #7e22ce;
 --role-control-text: #7e22ce;
+--frame-control-fill: #fefaff;
 --role-capability-fill: #f0fdf4;
---role-capability-stroke: #22c55e;
+--role-capability-stroke: #166534;
 --role-capability-text: #166534;
+--frame-capability-fill: #f8fefa;
 --role-interaction-fill: #eff6ff;
---role-interaction-stroke: #3b82f6;
+--role-interaction-stroke: #1e40af;
 --role-interaction-text: #1e40af;
+--frame-interaction-fill: #f7fbff;
 --role-warn-fill: #fef2f2;
---role-warn-stroke: #ef4444;
+--role-warn-stroke: #b91c1c;
 --role-warn-text: #b91c1c;
+--frame-warn-fill: #fff9f9;
 --role-neutral-fill: #f8fafc;
---role-neutral-stroke: #94a3b8;
+--role-neutral-stroke: #334155;
 --role-neutral-text: #334155;
+--frame-neutral-fill: #fcfdfe;
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -34,18 +39,23 @@
   --role-control-fill: rgba(168,85,247,0.18);
   --role-control-stroke: #c084fc;
   --role-control-text: #e9d5ff;
+  --frame-control-fill: rgba(168,85,247,0.1);
   --role-capability-fill: rgba(74,222,128,0.16);
   --role-capability-stroke: #4ade80;
   --role-capability-text: #bbf7d0;
+  --frame-capability-fill: rgba(74,222,128,0.1);
   --role-interaction-fill: rgba(96,165,250,0.16);
   --role-interaction-stroke: #60a5fa;
   --role-interaction-text: #dbeafe;
+  --frame-interaction-fill: rgba(96,165,250,0.1);
   --role-warn-fill: rgba(239,68,68,0.16);
   --role-warn-stroke: #f87171;
   --role-warn-text: #fecaca;
+  --frame-warn-fill: rgba(239,68,68,0.1);
   --role-neutral-fill: rgba(148,163,184,0.14);
   --role-neutral-stroke: #94a3b8;
   --role-neutral-text: #cbd5e1;
+  --frame-neutral-fill: rgba(148,163,184,0.1);
   }
 }
 
@@ -69,11 +79,16 @@ text { stroke: none; }
 .arrow-line { fill: none; stroke: var(--arrow); stroke-width: 1.4; }
 .role-control { fill: var(--role-control-fill); stroke: var(--role-control-stroke); }
 .role-control .node { fill: var(--role-control-fill); stroke: var(--role-control-stroke); }
+.frame-control { fill: var(--frame-control-fill); }
 .role-capability { fill: var(--role-capability-fill); stroke: var(--role-capability-stroke); }
 .role-capability .node { fill: var(--role-capability-fill); stroke: var(--role-capability-stroke); }
+.frame-capability { fill: var(--frame-capability-fill); }
 .role-interaction { fill: var(--role-interaction-fill); stroke: var(--role-interaction-stroke); }
 .role-interaction .node { fill: var(--role-interaction-fill); stroke: var(--role-interaction-stroke); }
+.frame-interaction { fill: var(--frame-interaction-fill); }
 .role-warn { fill: var(--role-warn-fill); stroke: var(--role-warn-stroke); }
 .role-warn .node { fill: var(--role-warn-fill); stroke: var(--role-warn-stroke); }
+.frame-warn { fill: var(--frame-warn-fill); }
 .role-neutral { fill: var(--role-neutral-fill); stroke: var(--role-neutral-stroke); }
-.role-neutral .node { fill: var(--role-neutral-fill); stroke: var(--role-neutral-stroke); }</style><style>.edge-label-bg{fill:var(--canvas);stroke:none;}</style><defs><marker id="arrow" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path class="arrow-fill" d="M0,0 L8,4 L0,8 Z"/></marker><marker id="arrow-async" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path class="arrow-line" d="M0,0 L8,4 L0,8"/></marker><marker id="arrow-fallback" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path class="arrow-line" d="M0,0 L8,4 L0,8"/></marker></defs><text class="title" x="440" y="32" text-anchor="middle">CI 发布流水线</text><g><rect class="frame" x="24" y="56" width="160" height="188" rx="10"/><text class="frame-label" x="36" y="74">提交</text></g><g><rect class="frame" x="248" y="56" width="160" height="188" rx="10"/><text class="frame-label" x="260" y="74">构建</text></g><g><rect class="frame" x="472" y="56" width="160" height="188" rx="10"/><text class="frame-label" x="484" y="74">验证</text></g><g><rect class="frame" x="696" y="56" width="160" height="188" rx="10"/><text class="frame-label" x="708" y="74">发布</text></g><path class="edge" d="M 153 103 L 280 103" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="185.6" y="107.5" width="62.8" height="19" rx="3"/><text class="edge-label" x="217" y="117" text-anchor="middle">push 事件</text><path class="edge" d="M 376 103 L 488 103" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="403.24" y="117.5" width="57.52" height="19" rx="3"/><text class="edge-label" x="432" y="127" text-anchor="middle">构建产物</text><path class="edge" d="M 616 103 L 725 103" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="642.24" y="107.5" width="57.52" height="19" rx="3"/><text class="edge-label" x="671" y="117" text-anchor="middle">门禁通过</text><path class="edge edge-dashed" d="M 488 103 L 376 103" marker-end="url(#arrow-fallback)"/><rect class="edge-label-bg" x="388.06" y="137.5" width="87.88" height="19" rx="3"/><text class="edge-label" x="432" y="147" text-anchor="middle">失败·修复重跑</text><path class="edge edge-dashed" d="M 776 132 L 776 186" marker-end="url(#arrow-fallback)"/><rect class="edge-label-bg" x="761.24" y="149.5" width="57.52" height="19" rx="3"/><text class="edge-label" x="790" y="159" text-anchor="middle">指标越限</text><g class="role-interaction"><rect class="node" x="56" y="74" width="97" height="58" rx="8"/><text class="n-label" x="104" y="94" text-anchor="middle">Git Push</text><text class="n-sub" x="104" y="112" text-anchor="middle">触发流水线</text></g><g class="role-capability"><rect class="node" x="280" y="74" width="96" height="58" rx="8"/><text class="n-label" x="328" y="94" text-anchor="middle">Build</text><text class="n-sub" x="328" y="112" text-anchor="middle">编译 + 单测</text></g><g class="role-control"><rect class="node" x="488" y="74" width="128" height="58" rx="8"/><text class="n-label" x="552" y="94" text-anchor="middle">QualityGate</text><text class="n-sub" x="552" y="112" text-anchor="middle">覆盖率门禁</text></g><g class="role-capability"><rect class="node" x="725" y="74" width="102" height="58" rx="8"/><text class="n-label" x="776" y="94" text-anchor="middle">Deploy</text><text class="n-sub" x="776" y="112" text-anchor="middle">灰度 10% 起步</text></g><g class="role-warn"><rect class="node" x="727" y="186" width="99" height="58" rx="8"/><text class="n-label" x="776" y="206" text-anchor="middle">Rollback</text><text class="n-sub" x="776" y="224" text-anchor="middle">异常自动回滚</text></g><g class="legend"><rect class="legend-box" x="718" y="260" width="138" height="48" rx="6"/><rect class="role-control" x="728" y="263" width="14" height="14" rx="3"/><text class="legend-label" x="750" y="272" text-anchor="start">控制</text><rect class="role-capability" x="793.76" y="263" width="14" height="14" rx="3"/><text class="legend-label" x="815.76" y="272" text-anchor="start">能力</text><rect class="role-interaction" x="728" y="281" width="14" height="14" rx="3"/><text class="legend-label" x="750" y="290" text-anchor="start">交互</text><rect class="role-warn" x="793.76" y="281" width="14" height="14" rx="3"/><text class="legend-label" x="815.76" y="290" text-anchor="start">告警</text></g><text class="caption" x="440" y="347" text-anchor="middle">图 2-1 · CI 发布流水线（提交 → 构建 → 验证 → 发布）</text></svg>
+.role-neutral .node { fill: var(--role-neutral-fill); stroke: var(--role-neutral-stroke); }
+.frame-neutral { fill: var(--frame-neutral-fill); }</style><style>.edge-label-bg{fill:var(--canvas);stroke:none;}</style><defs><marker id="arrow" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path class="arrow-fill" d="M0,0 L8,4 L0,8 Z"/></marker><marker id="arrow-async" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path class="arrow-line" d="M0,0 L8,4 L0,8"/></marker><marker id="arrow-fallback" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path class="arrow-line" d="M0,0 L8,4 L0,8"/></marker></defs><text class="title" x="440" y="32" text-anchor="middle">CI 发布流水线</text><g><rect class="frame frame-neutral" x="24" y="56" width="160" height="188" rx="14"/><text class="frame-label" x="36" y="74">提交</text></g><g><rect class="frame frame-capability" x="248" y="56" width="160" height="188" rx="14"/><text class="frame-label" x="260" y="74">构建</text></g><g><rect class="frame frame-control" x="472" y="56" width="160" height="188" rx="14"/><text class="frame-label" x="484" y="74">验证</text></g><g><rect class="frame frame-interaction" x="696" y="56" width="160" height="188" rx="14"/><text class="frame-label" x="708" y="74">发布</text></g><path class="edge" d="M 153 103 L 280 103" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="185.6" y="107.5" width="62.8" height="19" rx="3"/><text class="edge-label" x="217" y="117" text-anchor="middle">push 事件</text><path class="edge" d="M 376 103 L 488 103" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="403.24" y="117.5" width="57.52" height="19" rx="3"/><text class="edge-label" x="432" y="127" text-anchor="middle">构建产物</text><path class="edge" d="M 616 103 L 725 103" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="642.24" y="107.5" width="57.52" height="19" rx="3"/><text class="edge-label" x="671" y="117" text-anchor="middle">门禁通过</text><path class="edge edge-dashed" d="M 488 103 L 376 103" marker-end="url(#arrow-fallback)"/><rect class="edge-label-bg" x="388.06" y="137.5" width="87.88" height="19" rx="3"/><text class="edge-label" x="432" y="147" text-anchor="middle">失败·修复重跑</text><path class="edge edge-dashed" d="M 776 132 L 776 186" marker-end="url(#arrow-fallback)"/><rect class="edge-label-bg" x="761.24" y="149.5" width="57.52" height="19" rx="3"/><text class="edge-label" x="790" y="159" text-anchor="middle">指标越限</text><g class="role-interaction"><rect class="node" x="56" y="74" width="97" height="58" rx="8"/><text class="n-label" x="104" y="94" text-anchor="middle">Git Push</text><text class="n-sub" x="104" y="112" text-anchor="middle">触发流水线</text></g><g class="role-capability"><rect class="node" x="280" y="74" width="96" height="58" rx="8"/><text class="n-label" x="328" y="94" text-anchor="middle">Build</text><text class="n-sub" x="328" y="112" text-anchor="middle">编译 + 单测</text></g><g class="role-control"><rect class="node" x="488" y="74" width="128" height="58" rx="8"/><text class="n-label" x="552" y="94" text-anchor="middle">QualityGate</text><text class="n-sub" x="552" y="112" text-anchor="middle">覆盖率门禁</text></g><g class="role-capability"><rect class="node" x="725" y="74" width="102" height="58" rx="8"/><text class="n-label" x="776" y="94" text-anchor="middle">Deploy</text><text class="n-sub" x="776" y="112" text-anchor="middle">灰度 10% 起步</text></g><g class="role-warn"><rect class="node" x="727" y="186" width="99" height="58" rx="8"/><text class="n-label" x="776" y="206" text-anchor="middle">Rollback</text><text class="n-sub" x="776" y="224" text-anchor="middle">异常自动回滚</text></g><g class="legend"><rect class="legend-box" x="718" y="260" width="138" height="48" rx="6"/><rect class="role-control" x="728" y="263" width="14" height="14" rx="3"/><text class="legend-label" x="750" y="272" text-anchor="start">控制</text><rect class="role-capability" x="793.76" y="263" width="14" height="14" rx="3"/><text class="legend-label" x="815.76" y="272" text-anchor="start">能力</text><rect class="role-interaction" x="728" y="281" width="14" height="14" rx="3"/><text class="legend-label" x="750" y="290" text-anchor="start">交互</text><rect class="role-warn" x="793.76" y="281" width="14" height="14" rx="3"/><text class="legend-label" x="815.76" y="290" text-anchor="start">告警</text></g><text class="caption" x="440" y="347" text-anchor="middle">图 2-1 · CI 发布流水线（提交 → 构建 → 验证 → 发布）</text></svg>

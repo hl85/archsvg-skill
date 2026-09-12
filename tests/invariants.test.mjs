@@ -10,10 +10,10 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
-import { TYPE_SCALE, BOX, EDGE_LABEL, EDGE_MASK_HEIGHT } from '../lib/typography.mjs';
+import { TYPE_SCALE, BOX, EDGE_LABEL, EDGE_MASK_HEIGHT, FRAME } from '../lib/typography.mjs';
 import { STROKE } from '../lib/typography.mjs';
 import { ARROW_MARKER_IDS, MARKER_SHAPES, EDGE_STYLE, collectUrlRefs, collectIds } from '../lib/markers.mjs';
-import { ROLE_KEYS, styleBlock } from '../lib/theme.mjs';
+import { ROLE_KEYS, TOKENS, frameFill, styleBlock } from '../lib/theme.mjs';
 import { renderSvg } from '../lib/render.mjs';
 import { layout } from '../lib/layout.mjs';
 import { runCompositionChecks, COMPOSITION_CHECK_NAMES } from '../lib/checks/composition.mjs';
@@ -61,6 +61,40 @@ export const cases = [
       if (!(BOX.heightDouble > BOX.heightSingle)) throw new Error('双行盒必须高于单行盒');
       if (BOX.lineHeight <= 0) throw new Error('lineHeight 必须为正');
       return `盒宽 ${BOX.minWidth}–${BOX.maxWidth}，内宽 ${BOX.maxWidth - 2 * BOX.padX}，行高 ${BOX.lineHeight}`;
+    },
+  },
+  {
+    name: '圆角梯度：外层组框圆角 > 内层节点圆角',
+    run() {
+      // 读实际导出值比较，不写死数字：容器比节点更「钝」才有由外到内的层次。
+      // 两者相等或反向会在视觉上让组框与节点融成一片（尤其组框已着域色后）。
+      if (!(FRAME.radius > BOX.radius)) {
+        throw new Error(`FRAME.radius(${FRAME.radius}) 必须 > BOX.radius(${BOX.radius})`);
+      }
+      return `FRAME.radius ${FRAME.radius} > BOX.radius ${BOX.radius}`;
+    },
+  },
+  {
+    name: '组框填充不退化：≠ 同 role 节点填充，且 ≠ 画布',
+    run() {
+      // 强度说明：这是**「不等于」断言**，不是感知阈值断言。它只保证组框填充没有塌缩成
+      // 同一个色值，**不保证**肉眼一定可分辨——可辨识度由 headless 浏览器实测佐证
+      // （见 design-system.md §2.3 的渲染级验证）。
+      // 背景：archsvg 约定「节点 role 与所属域一致」，节点常与所在带同 role；若两者填充
+      // 取值相同（向画布混时 neutral 会这样），节点在自己的带里就看不见了。
+      const modes = ['light', 'dark'];
+      const bad = [];
+      for (const mode of modes) {
+        const canvas = TOKENS[mode].canvas;
+        for (const r of ROLE_KEYS) {
+          const ff = frameFill(mode, r);
+          const rf = TOKENS[mode].roles[r].fill;
+          if (ff === rf) bad.push(`${mode}/${r}: frameFill(${ff}) === role.fill(${rf})，带与同域节点同色`);
+          if (ff === canvas) bad.push(`${mode}/${r}: frameFill(${ff}) === canvas(${canvas})，带与页面同色`);
+        }
+      }
+      if (bad.length) throw new Error(bad.join('；'));
+      return `${modes.length} 套 mode × ${ROLE_KEYS.length} 个 role 的 frameFill 均 ≠ role.fill 且 ≠ canvas`;
     },
   },
   {
