@@ -25,7 +25,6 @@ const VENDOR_FILES = ['geometry.mjs', 'diagnostics.mjs'];
 const importFrom = (rel) => import(new URL(rel, BIN_URL).href);
 
 const TYPES = new Set(['architecture', 'flow', 'sequence']);
-const STANDARD_DOCUMENT = new Set(['no_ascii', 'no_base64', 'ref_reachable']);
 
 // ---- 通用错误 ----
 class UsageError extends Error {
@@ -101,22 +100,28 @@ function readInput(inputPath) {
 // 验证 + 渲染 编排
 // =====================================================================
 async function loadLib() {
-  const [{ validateSchema }, { layout }, { renderSvg }, { runCompositionChecks },
-    { runDocumentChecks }] = await Promise.all([
+  const [{ validateSchema }, { layout }, { renderSvg }, { runCompositionChecks, COMPOSITION_CHECK_NAMES },
+    { runDocumentChecks, DOCUMENT_CHECK_NAMES, STANDARD_DOCUMENT_CHECK_NAMES }, { TYPE_SCALE, STROKE }] = await Promise.all([
     importFrom('../lib/schema.mjs'),
     importFrom('../lib/layout.mjs'),
     importFrom('../lib/render.mjs'),
     importFrom('../lib/checks/composition.mjs'),
     importFrom('../lib/checks/document.mjs'),
+    importFrom('../lib/typography.mjs'),
   ]);
-  return { validateSchema, layout, renderSvg, runCompositionChecks, runDocumentChecks };
+  return {
+    validateSchema, layout, renderSvg, runCompositionChecks, COMPOSITION_CHECK_NAMES,
+    runDocumentChecks, DOCUMENT_CHECK_NAMES, STANDARD_DOCUMENT_CHECK_NAMES, TYPE_SCALE, STROKE,
+  };
 }
 
-// 跑「全部检查」：schema → layout → 9 构图 → 按档位选文档集成专项。
-// 入参 svgPath：render 时为已渲染的临时 SVG；validate 时为 null（ASCII/base64 项自动跳过）。
+// 跑「全部检查」：schema → layout → 构图项 → 按档位选文档集成专项。
+// 入参 svgPath：validate / render 都会传已渲染的 SVG（见 finishValidate 与 cmdRender），
+// 故产物级检查（no_ascii / no_base64 / text_no_stroke / marker_contract / svg_text_fits）两档语义一致。
 // 返回 { schemaOk, diagnostics, checks, layoutOk }
 async function runPipeline({ ir, type, svgPath, profile, variantPair = null }) {
-  const { validateSchema, layout, runCompositionChecks, runDocumentChecks } = await loadLib();
+  const { validateSchema, layout, runCompositionChecks, runDocumentChecks, STANDARD_DOCUMENT_CHECK_NAMES } = await loadLib();
+  const STANDARD_DOCUMENT = new Set(STANDARD_DOCUMENT_CHECK_NAMES);
 
   // 1) schema
   const schemaRes = validateSchema(ir);
@@ -161,6 +166,29 @@ async function runPipeline({ ir, type, svgPath, profile, variantPair = null }) {
 function summarize(checks) {
   const failed = checks.filter((c) => !c.ok).length;
   return { total: checks.length, passed: checks.length - failed, failed };
+}
+
+// 在临时 SVG 上执行 fn —— validate 与 render 都走这里，保证「两档跑的是同一批检查」。
+// 历史行为：validate 不渲染，于是 no_ascii / no_base64 / text_no_stroke 在 validate 时被跳过，
+// 「validate 通过」并不等于「render 会通过」。现在两者都在真实产物上判定。
+async function withRenderedSvg(ir, fn) {
+  const { renderSvg } = await loadLib();
+  let svg;
+  try {
+    svg = renderSvg(ir);
+  } catch (e) {
+    return fn(null, [{
+      code: 'render/error', severity: 'error', message: `渲染失败：${e.message}`,
+      subject: {}, evidence: {}, supportedFixes: [],
+    }]);
+  }
+  const tmp = path.join(os.tmpdir(), `archsvg-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}.svg`);
+  writeFileSync(tmp, svg, 'utf8');
+  try {
+    return await fn(tmp, null);
+  } finally {
+    rmSync(tmp, { force: true });
+  }
 }
 
 function buildReceipt({ command, type, input, output, profile, checks, diagnostics, artifact }) {
@@ -273,7 +301,10 @@ async function cmdValidate(args, command) {
     });
   }
 
-  const result = await runPipeline({ ir, type, svgPath: null, profile, variantPair: flags.variantPair ?? null });
+  const result = await withRenderedSvg(ir, (tmp, renderDiags) => {
+    if (renderDiags) return { schemaOk: true, layoutOk: false, diagnostics: renderDiags, checks: [] };
+    return runPipeline({ ir, type, svgPath: tmp, profile, variantPair: flags.variantPair ?? null });
+  });
   return finishValidate(command, type, input, profile, flags.json, result);
 }
 
@@ -467,6 +498,52 @@ function cmdGuide(args) {
 }
 
 // =====================================================================
+// 命令：test（跑 tests/*.test.mjs）
+// =====================================================================
+// 只跑零依赖的纯计算测试；需要 headless 浏览器的工具命名为 *.tool.mjs，不在此列（见 SKILL.md）。
+async function cmdTest(args) {
+  const json = args.includes('--json');
+  const dir = path.join(SKILL_ROOT, 'tests');
+  let files;
+  try { files = readdirSync(dir).filter((f) => f.endsWith('.test.mjs')).sort(); }
+  catch { throw new UsageError('找不到 tests 目录'); }
+  if (!files.length) throw new UsageError('tests 目录下没有 *.test.mjs');
+
+  let passed = 0;
+  const failed = [];
+  const results = [];
+  for (const f of files) {
+    const mod = await importFrom(`../tests/${f}`);
+    const list = mod.cases || [];
+    if (!list.length) failed.push({ file: f, name: '(无 cases 导出)', message: '测试文件必须导出 cases 数组' });
+    for (const c of list) {
+      const label = `${f} :: ${c.name}`;
+      try {
+        const msg = c.run();
+        passed += 1;
+        results.push({ file: f, name: c.name, ok: true, message: msg || 'ok' });
+      } catch (e) {
+        failed.push({ file: f, name: c.name, message: e.message });
+        results.push({ file: f, name: c.name, ok: false, message: e.message });
+      }
+      void label;
+    }
+  }
+
+  if (json) {
+    process.stdout.write(JSON.stringify({ passed, failed: failed.length, results }, null, 2) + '\n');
+  } else {
+    let cur = '';
+    for (const r of results) {
+      if (r.file !== cur) { cur = r.file; console.log(`\n${cur}`); }
+      console.log(`  [${r.ok ? 'ok' : 'fail'}] ${r.name}  ${r.message}`);
+    }
+    console.log(`\n共 ${passed + failed.length} 项：通过 ${passed}，失败 ${failed.length}`);
+  }
+  return failed.length === 0 ? 0 : 1;
+}
+
+// =====================================================================
 // 命令：doctor（环境自检）
 // =====================================================================
 async function check(label, fn) {
@@ -476,6 +553,124 @@ async function check(label, fn) {
   } catch (e) {
     return { label, ok: false, msg: e.message };
   }
+}
+
+// =====================================================================
+// 文档常量 ↔ 代码常量 一致性（doctor 专项）
+// =====================================================================
+//
+// 由来：同类系统的真实事故是「指南是实现的**手工拷贝**」——文件头写着「如需升级请同步修改
+// 另一份并重新拷贝此文件」，于是两份必然漂移，而所有面向产物的检查都查不出来。
+// archsvg 里已经发生过同类漂移：口径写成 `standard` 14 项（实际 13）、`showcase 须 15/15`
+// （实际 17）、`label_route_clearance` 阈值写成 14px（实际 15）。
+//
+// 本项把「文档里的数值」变成可断言的契约：任何一侧改动而忘记同步，doctor 立刻变红。
+// 若文档被有意改写，必须同步更新下面的锚点表 —— 找不到锚点按失败处理，不允许静默跳过。
+
+const REFS_DIR = path.join(SKILL_ROOT, 'references');
+
+function readSkillFile(rel) {
+  const p = path.join(SKILL_ROOT, rel);
+  if (!existsSync(p)) throw new Error(`文件不存在：${rel}`);
+  return readFileSync(p, 'utf8');
+}
+
+// 从 markdown 表格里取一行中所有数值，用于比对字级表。
+// 行形如：`| **节点标题** | **16px，weight 700**（近黑 ...） |`
+function tableRow(text, label) {
+  const re = new RegExp(`^\\|\\s*\\**${label}\\**\\s*\\|([^|]*)\\|`, 'm');
+  const m = text.match(re);
+  return m ? m[1] : null;
+}
+
+function expectNum(problems, where, got, want) {
+  if (got == null) {
+    problems.push(`${where}：未找到可断言的数值（若为有意改写文档，请同步更新 doctor 的锚点表）`);
+  } else if (got !== want) {
+    problems.push(`${where}：文档写 ${got}，代码实际 ${want}`);
+  }
+}
+
+async function checkDocsConsistency() {
+  const { COMPOSITION_CHECK_NAMES, DOCUMENT_CHECK_NAMES, STANDARD_DOCUMENT_CHECK_NAMES, TYPE_SCALE, STROKE } = await loadLib();
+  const compN = COMPOSITION_CHECK_NAMES.length;
+  const docN = DOCUMENT_CHECK_NAMES.length;
+  const stdDocN = STANDARD_DOCUMENT_CHECK_NAMES.length;
+  const totalN = compN + docN;
+  const standardN = compN + stdDocN;
+
+  const design = readSkillFile('references/design-system.md');
+  const contract = readSkillFile('references/diagram-contract.md');
+  const skill = readSkillFile('SKILL.md');
+  const readme = readSkillFile('README.md');
+
+  const problems = [];
+  const num = (s, re) => { const m = s.match(re); return m ? Number(m[1]) : null; };
+
+  // ---- 1) design-system.md 的字级 / 线宽表 ↔ TYPE_SCALE / STROKE ----
+  const fontRow = (label) => {
+    const cell = tableRow(design, label);
+    if (cell == null) return [null, null];
+    const px = num(cell, /(\d+(?:\.\d+)?)\s*px/);
+    const weight = num(cell, /weight\s*(\d+)/);
+    return [px, weight];
+  };
+  const fontChecks = [
+    ['主标题', 'title'],
+    ['节点标题', 'nodeTitle'],
+    ['节点副标签', 'nodeSub'],
+    ['边标签', 'edgeLabel'],
+    ['组框标签', 'frameLabel'],
+    ['图例', 'legend'],
+  ];
+  for (const [label, key] of fontChecks) {
+    const [px, weight] = fontRow(label);
+    expectNum(problems, `design-system.md「${label}」字号`, px, TYPE_SCALE[key].px);
+    if (weight != null) expectNum(problems, `design-system.md「${label}」字重`, weight, TYPE_SCALE[key].weight);
+  }
+  {
+    const cell = tableRow(design, '连线');
+    const sw = cell == null ? null : Number((cell.match(/stroke-width:\s*(\d+(?:\.\d+)?)/) || [])[1]);
+    expectNum(problems, 'design-system.md「连线」线宽', Number.isNaN(sw) ? null : sw, STROKE.edge);
+  }
+  {
+    const m = design.match(/(\d+)\s*px\s*，weight\s*(\d+)[^\n]*节点标题/);
+    if (m) expectNum(problems, 'design-system.md 节点标题字重', Number(m[2]), TYPE_SCALE.nodeTitle.weight);
+  }
+
+  // ---- 2) diagram-contract.md 的项数 ↔ 实际检查项 ----
+  expectNum(problems, 'diagram-contract.md §3 标题项数', num(contract, /##\s*3\.\s*(\d+)\s*项检查逐项说明/), totalN);
+  expectNum(problems, 'diagram-contract.md §3.1 构图项数', num(contract, /##\s*3\.1\s*构图\s*(\d+)\s*项/), compN);
+  expectNum(problems, 'diagram-contract.md §3.2 文档专项项数', num(contract, /###\s*3\.2\s*文档集成专项\s*(\d+)\s*项/), docN);
+  expectNum(problems, 'diagram-contract.md §3.3 standard 项数', num(contract, /`standard`：[\s\S]{0,200}?=\s*\*\*(\d+)\s*项\*\*/), standardN);
+  expectNum(problems, 'diagram-contract.md §3.3 showcase 项数', num(contract, /`showcase`：(\d+)\s*项\*\*全过\*\*/), totalN);
+
+  // ---- 3) SKILL.md 的口径 ↔ 实际检查项 ----
+  expectNum(problems, 'SKILL.md「做 N 项机械检查」', num(skill, /做\s*(\d+)\s*项机械检查/), totalN);
+  expectNum(problems, 'SKILL.md「standard = N 项」', num(skill, /`standard`\s*=\s*(\d+)\s*项/), standardN);
+  expectNum(problems, 'SKILL.md「showcase = N 项全过」', num(skill, /`showcase`\s*=\s*(\d+)\s*项全过/), totalN);
+  {
+    const m = skill.match(/showcase\s*须\s*`(\d+)\/(\d+)`/);
+    if (!m) problems.push('SKILL.md：未找到「showcase 须 `N/N`」锚点');
+    else {
+      expectNum(problems, 'SKILL.md「showcase 须 N/N」分子', Number(m[1]), totalN);
+      expectNum(problems, 'SKILL.md「showcase 须 N/N」分母', Number(m[2]), totalN);
+    }
+  }
+
+  // ---- 4) README.md 的档位口径 ----
+  {
+    const m = readme.match(/`standard`\s*(\d+)\s*项\s*\/\s*`showcase`\s*(\d+)\s*项/);
+    if (!m) problems.push('README.md：未找到「`standard` N 项 / `showcase` N 项」锚点');
+    else {
+      expectNum(problems, 'README.md standard 项数', Number(m[1]), standardN);
+      expectNum(problems, 'README.md showcase 项数', Number(m[2]), totalN);
+    }
+  }
+  expectNum(problems, 'README.md「做 N 项机械检查」', num(readme, /做\s*(\d+)\s*项机械检查/), totalN);
+
+  if (problems.length) throw new Error(problems.join('；'));
+  return `字级/线宽 7 项、档位项数 6 处、README 口径 3 处均与代码一致（构图 ${compN} + 文档 ${docN}；standard ${standardN} / showcase ${totalN}）`;
 }
 
 async function cmdDoctor() {
@@ -511,7 +706,8 @@ async function cmdDoctor() {
 
   // 4) lib 各模块可 import
   const libModules = [
-    '../lib/theme.mjs', '../lib/layout.mjs', '../lib/render.mjs', '../lib/schema.mjs',
+    '../lib/theme.mjs', '../lib/typography.mjs', '../lib/text-metrics.mjs', '../lib/markers.mjs',
+    '../lib/layout.mjs', '../lib/render.mjs', '../lib/schema.mjs',
     '../lib/checks/composition.mjs', '../lib/checks/document.mjs',
     '../lib/geometry.mjs', '../lib/diagnostics.mjs',
   ];
@@ -531,6 +727,36 @@ async function cmdDoctor() {
       return '存在';
     }));
   }
+
+  // 6) 文档常量 ↔ 代码常量
+  items.push(check('docs 常量 ↔ 代码常量', checkDocsConsistency));
+
+  // 7) tests/ 存在
+  items.push(check('tests/ ≥ 1', () => {
+    const dir = path.join(SKILL_ROOT, 'tests');
+    let list;
+    try { list = readdirSync(dir).filter((f) => f.endsWith('.mjs')); }
+    catch { throw new Error('tests 目录不存在'); }
+    if (list.length < 1) throw new Error('tests 目录为空');
+    return `${list.length} 个测试文件`;
+  }));
+
+  // 8) samples/ 与 samples/README 覆盖矩阵一致
+  items.push(check('samples/ 覆盖矩阵', () => {
+    const dir = path.join(SKILL_ROOT, 'samples');
+    let jsons;
+    try { jsons = readdirSync(dir).filter((f) => f.endsWith('.json')); }
+    catch (e) { throw new Error(`无法读取 samples 目录：${e.message}`); }
+    if (jsons.length < 1) throw new Error('samples 目录为空');
+    let readme;
+    try { readme = readFileSync(path.join(dir, 'README.md'), 'utf8'); }
+    catch { throw new Error('samples/README.md 不存在'); }
+    const missing = jsons
+      .map((f) => f.split('.')[0])
+      .filter((stem) => !readme.includes('`' + stem + '`'));
+    if (missing.length) throw new Error(`samples/README 覆盖矩阵缺少：${missing.join(', ')}`);
+    return `${jsons.length} 个样例，覆盖矩阵齐全`;
+  }));
 
   const results = await Promise.all(items);
 
@@ -555,7 +781,8 @@ function printUsage() {
   console.log(`archsvg —— 把 IR JSON 渲染为可嵌入文档的静态 SVG 并做机械验证
 
 用法：
-  archsvg doctor                                            环境自检
+  archsvg doctor                                            环境自检（含文档↔代码常量一致性）
+  archsvg test   [--json]                                   跑 tests/*.test.mjs（零依赖）
   archsvg guide "<场景>"                                    推荐图类型
   archsvg validate <type> <input.json> [--quality standard|showcase] [--variant-pair <dir>] [--json]
   archsvg render   <type> <input.json> <output.svg> [--quality standard|showcase] [--variant-pair <dir>] [--json]
@@ -576,6 +803,7 @@ async function main() {
   try {
     switch (cmd) {
       case 'doctor': return await cmdDoctor();
+      case 'test': return await cmdTest(rest);
       case 'guide': return cmdGuide(rest);
       case 'validate': return await cmdValidate(rest, 'validate');
       case 'render': return await cmdRender(rest);

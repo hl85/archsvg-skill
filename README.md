@@ -3,7 +3,7 @@
 > 给开发者的专业图形生成管线：**IR JSON → 机械验证 → 静态 SVG**。
 
 archsvg 让你用一份描述图结构的 JSON（IR，Intermediate Representation）表达架构图、流程图、
-时序图，由它负责自动布局与渲染，并在出图前做 17 项机械检查。产出是**单文件静态 SVG**，
+时序图，由它负责自动布局与渲染，并在出图前做 20 项机械检查。产出是**单文件静态 SVG**，
 可直接嵌入 Markdown、文档系统或代码仓库。
 
 ## 它解决什么问题
@@ -25,7 +25,7 @@ archsvg 的做法是**让模型输出结构，而不是输出像素**：
       ↓
   Schema 校验           ← 字段合法性
       ↓
-  机械检查（17 项）     ← 标签遮挡、连线穿越、走廊歧义、对比度、文字描边…
+  机械检查（20 项）     ← 标签遮挡、连线穿越、走廊歧义、对比度、文字描边、箭头契约…
       ↓
   渲染静态 SVG
 ```
@@ -102,7 +102,7 @@ archsvg render   <type> <input.json> <output.svg> [--quality standard|showcase] 
 ```
 
 - `<type>` ∈ `architecture` | `flow` | `sequence`
-- `--quality`：`standard` 14 项 / `showcase` 17 项（默认 `standard`）
+- `--quality`：`standard` 15 项 / `showcase` 20 项（默认 `standard`）
 - `--json`：输出机器可读回执，含 `checks`、`composition.summary`、`artifact.sha256`
 
 退出码：
@@ -153,15 +153,15 @@ archsvg/
 │   ├── render.mjs               # 静态 SVG 渲染
 │   ├── schema.mjs               # 运行时 schema 校验（JSON Schema 子集）
 │   └── checks/
-│       ├── composition.mjs      # 构图检查 10 项
-│       └── document.mjs         # 文档集成检查 6 项
+│       ├── composition.mjs      # 构图检查 11 项
+│       └── document.mjs         # 文档集成检查 9 项
 ├── schemas/{common,architecture,flow,sequence}.schema.json
 ├── examples/                    # 各类型最小示例 IR（Schema 对照用）
 ├── samples/                     # 成品样例画廊（IR + 已渲染 SVG，覆盖全部类型与变体）
 └── references/
     ├── design-system.md         # 固定风格约定 + fewshot（域→role 配色、文案规范、自检）
     ├── diagram-spec.md          # IR 规范、role 语义、布局规则、修复优先级
-    └── diagram-contract.md      # 诊断 / 回执契约、17 项检查逐项说明
+    └── diagram-contract.md      # 诊断 / 回执契约、20 项检查逐项说明
 ```
 
 ## 运行时要求
@@ -193,5 +193,22 @@ archsvg 自身以 MIT 发布。
 写入 stderr 并退出。archsvg 自研模块不依赖该变量，仅保留语义以兼容上游代码。
 
 ## 版本
+
+**v0.1.3** —— 常量单点化与「估算 / 渲染 / 校验」三方拉齐：
+
+- 新增 `lib/typography.mjs`（字号/盒几何/线宽/图例/画布常量）与 `lib/text-metrics.mjs`
+  （**实测标定**的字宽系数表），`layout` / `render` / `theme` / `checks` 全部改为引用，
+  不再各自硬编码（历史上四处各写一份，改一处即静默错位）。
+- 新增 `lib/markers.mjs`：箭头 marker id 由契约单点定义，`marker_contract` 检查双向断言
+  （悬空引用 / 越权 marker / 契约缺实现）。
+- 新增检查 `text_not_truncated`（截断 = 信息丢失）、`marker_contract`、`svg_text_fits`
+  （**产物级**：按渲染字号复核盒内文案与遮罩，能挡住跨模块常量错位）。合计 20 项。
+- 修两处渲染缺陷（由新引入的渲染级复核实测发现，此前所有检查项均不可见）：
+  边标签遮罩按 11px 估算而文字是 12px（遮罩窄 ~8%，连线从字缝透出）；
+  `.edge-label` 已 `dominant-baseline: central` 却仍额外 `+3px`（文字稳定探出遮罩下沿 3.5px）。
+- `validate` 改为同样先在内存渲染产物 → 与 `render` 跑同一批检查（此前 validate 静默跳过
+  产物级检查，「validate 通过」≠「render 会通过」）。
+- 新增 `archsvg test` 与 `tests/`：19 项零依赖断言 + 2 个 headless 浏览器工具（含负向用例，保证每项检查可证伪）。
+- `archsvg doctor` 新增「docs 常量 ↔ 代码常量」断言（首次运行即抓出 13 处文档↔代码漂移）。
 
 **v0.1.2** —— 三类型、17 项检查（新增 `text_no_stroke`）、画布自动贴合、共列网格、固定风格设计系统。

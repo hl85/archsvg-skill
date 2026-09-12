@@ -36,21 +36,83 @@
 
 ### 2.1 字级与线宽（固定值，不要逐图调）
 
-| 元素 | 字号 / 线宽 |
+**唯一出处是 `lib/typography.mjs` 的 `TYPE_SCALE` / `STROKE`**，本表是它的可读副本。
+`archsvg doctor` 会断言本表与代码常量一致——改任意一边而忘记同步，doctor 立刻变红。
+
+| 元素 | 字号 / 字重 |
 |:---|:---|
 | 主标题 | 24px，weight 700 |
 | **节点标题** | **16px，weight 700**（近黑 `--text`，不用 role 同色——会同色系顺色发虚） |
-| 节点副标签 | 12px，`--muted` |
-| 边标签 | 12px，`--muted` |
-| 组框标签 | 13px，weight 700，`--text` |
+| 节点副标签 | 12px |
+| 边标签 | 12px |
+| 组框标签 | 13px，weight 700 |
 | 图例 | 12px |
 | 连线 | `stroke-width: 2` |
 
-> ⚠️ **改字号必须三方同步**，否则文字会溢出盒子、或触发净空误报：
-> `lib/theme.mjs`（CSS）↔ `lib/layout.mjs`（`NODE_FONT`/`SUB_FONT`/`LABEL_H`/盒高等估算常量）
-> ↔ `lib/checks/composition.mjs`（`LABEL_FONT`/`LABEL_HEIGHT`）。
-> 且 `layout.LABEL_MIN_CLEAR` 必须 **≥** 检查阈值 `max(8, LABEL_HEIGHT)`——
-> 放置器与检查器的阈值不一致时，会选出「刚好差 0.5px」的位置导致批量误报。
+> 💡 **改字号只需改一处**：`lib/typography.mjs` 的 `TYPE_SCALE`。
+> 因 `theme.mjs`（CSS）、`layout.mjs`（盒宽/盒高估算）、`checks/composition.mjs`（标签矩形）、
+> `render.mjs`（绘制）**全部从该表取值**，不再各自硬编码。
+> 改完跑 `node bin/archsvg.mjs test` + `node bin/archsvg.mjs doctor`，
+> 再跑一次渲染级校验（见 2.3）。
+
+---
+
+## 2.2 字宽标定：盒宽是**估算**出来的，不是量出来的
+
+布局器在放盒子之前就要知道文字有多宽，所以宽度必须**估算**。估算的系数是实测标定的，
+不是猜的：
+
+| 字符类别 | 系数（em） | 实测区间 |
+|:---|---:|:---|
+| CJK 表意文字 / 全角标点 | **0.99** | 0.952–0.993 |
+| `0`–`9` | 0.62 | 0.586–0.651 |
+| `A`–`Z` | 0.68 | 0.656–0.710 |
+| `a`–`z` | 0.54 | 0.510–0.573 |
+| ASCII 标点 | 0.44 | 0.387–0.473 |
+| 空格 | 0.26 | 0.211–0.281 |
+| 其它 | 0.55 | — |
+
+**实测口径**：headless Chromium + `getComputedTextLength()`，`system-ui` 字体族，
+按 archsvg 实际用到的字号/字重逐类取样（脚本：`tests/calibrate-text-metrics.tool.mjs`）。
+在 7 个真实文案样本上，本表**最大绝对误差 4.8%**；改之前的单一「CJK 1.0 / 其余 0.55」
+为 10.6%。
+
+> ⚠️ 已测且**不要再试**：在分类系数之上再叠一个「字重放大系数（700/400）」，
+> 会把混合文本的误差从 4.8% 放大到 9.4%。分类系数已吸收字重的平均效应，勿重复补偿。
+
+**盒宽公式**（`lib/layout.mjs` 的 `boxSize`）：
+
+```
+可用内宽 = BOX.maxWidth − 2 × BOX.padX          # 240 − 28 = 212
+折行阈值 = 可用内宽
+盒宽     = clamp(max(各行估算宽) + 2 × BOX.padX, BOX.minWidth, BOX.maxWidth)
+盒高     = 行数 ≤ 1 ? BOX.heightSingle : BOX.heightDouble + (行数 − 2) × BOX.lineHeight
+```
+
+**系统性地消掉了「宽度溢出」这一类问题**：因为折行判定与盒宽推导用的是同一个估算函数与
+同一套常量，文字不可能因为估算而被挤到盒外（只有估算本身失准时才会，见 2.3 的兜底）。
+
+### 2.3 渲染级验证（改了度量/排版/渲染后必做）
+
+内建检查全部基于**估算值**，无法证伪估算本身。真正的裁判是浏览器：
+
+```bash
+NODE_PATH=$HOME/.workbuddy/binaries/node/workspace/node_modules \
+node tests/verify-rendered-svg.tool.mjs          # 不给参数则校验 samples/*.svg
+```
+
+它用真实 `getBBox()` 比对「盒内文字 vs 盒矩形」「边标签 bbox vs 背景遮罩」，
+容差默认 0（必须完全在框内）。**2026-09-12 首次接入时实测出 34 处越界**，
+修复后为 0 —— 这两类缺陷此前在所有检查项里都是不可见的：
+
+| 曾经的缺陷 | 现象 | 根因 |
+|:---|:---|:---|
+| 边标签遮罩宽不足 | 遮罩比文字窄 ~8%，连线从字缝透出 | `render.mjs` 自持一份系数且按 **11px** 估算，而 layout/checks 按 12px |
+| 文字探出遮罩下沿 | 稳定漏出 3.5px | `.edge-label` 已有 `dominant-baseline: central`，渲染侧却仍额外 `+3px` |
+
+---
+
+## 2.4 文案与折行的其余约定
 
 > ⚠️ **文本必须 `stroke: none`（已由 `text { stroke: none; }` 兜底）**：
 > role 的描边定义在分组 `<g class="role-*">` 上，而 **SVG 中 `g` 的 `stroke` 会被子元素继承**。
@@ -58,13 +120,13 @@
 > 观感是「文字发蓝/发紫、发糊、发虚」，且**所有检查项都查不出来**（`theme_readable` 只看 fill 对比度）。
 
 > 📐 **超长文案自动折行**（盒宽上限 240 → 行宽上限 212，**每段最多 2 行**）：
-> 节点标题/副标签超过行宽上限时折行（`lib/layout.mjs` 的 `wrapText`）：**贪心填满容器宽**
+> 节点标题/副标签超过行宽上限时折行（`lib/text-metrics.mjs` 的 `wrapTextDetailed`）：**贪心填满容器宽**
 > （不提前折，否则会多占一行高度）；CJK 逐字断、拉丁按空格断、单个超长词硬断；
-> **超过 2 行即截断、末行加 `…`**。盒高按行数计：1 行 42、2 行 58、每多 1 行 +18（`LINE_H`）。
+> **超过 2 行即截断、末行加 `…`**。盒高按行数计：1 行 42、2 行 58、每多 1 行 +18（`BOX.lineHeight`）。
 > **同组卡片等高**：组内取最大行数的高度逐卡统一——卡片整齐，且共享同一 `cy`
 > （否则带内水平直连边会因行高不一出现 <16px 竖段，触发 `route_rhythm`）。
-> 注意：`node_text_in_box` 只验「文字锚点在盒内」，**量不出宽度溢出**；
-> 真渲染级校验用 `temp/archsvg-variants/verify-overflow.mjs`（比 `getBBox` 与盒子矩形）。
+> 🚫 **截断会被 `text_not_truncated` 拦下**：截断 = 信息丢失，与「删标签 = 删信息」的底线冲突。
+> 正确修法是**改文案或拆节点**，不是调大盒宽（240 上限是有意为之）。
 > 排查同类问题的正确姿势：用 Playwright 读 `getComputedStyle(el).fill` **和 `.stroke`**，别只看 fill。
 
 ---
@@ -141,10 +203,11 @@
 
 ---
 
-## 5. 出图前自检（5 条，30 秒）
+## 5. 出图前自检（6 条，30 秒）
 
 1. 域 → role 的映射列出来了吗？（一域一色）
 2. 每个 group 内部节点 ≤ 4？边是否只跨一到两条带？
 3. 节点 `label` 是否有中文名？`sublabel` 是否给了规模/角色？
 4. 边 `label` 是否带说明？有没有为了排版删过标签？
 5. `meta.caption` 是否写成 `图 X-N · 名称（口径）`？
+6. **有没有哪条文案被折成 `…`？**（`text_not_truncated` 会拦）——有就改文案或拆节点，别留着。

@@ -1,12 +1,12 @@
 ---
 name: archsvg
-description: This skill should be used when the user asks to create, redraw, or validate a professional diagram — architecture, system topology, flowchart, pipeline, sequence diagram, decision tree, state flow, or comparison (架构图 / 拓扑图 / 流程图 / 时序图 / 决策树). Accepts IR JSON, Markdown, or plain prose as input and renders one self-contained static SVG with automatic layout, light/dark theming, zero JavaScript, and 15 composition checks. Also converts Mermaid or prose into static SVG. Not for raster images or freeform artwork.
+description: This skill should be used when the user asks to create, redraw, or validate a professional diagram — architecture, system topology, flowchart, pipeline, sequence diagram, decision tree, state flow, or comparison (架构图 / 拓扑图 / 流程图 / 时序图 / 决策树). Accepts IR JSON, Markdown, or plain prose as input and renders one self-contained static SVG with automatic layout, light/dark theming, zero JavaScript, and 20 mechanical checks. Also converts Mermaid or prose into static SVG. Not for raster images or freeform artwork.
 agent_created: true
 ---
 
 # archsvg —— IR JSON → 静态 SVG 渲染 + 机械验证
 
-把「结构化图描述（IR JSON）」渲染为**可嵌入文档的静态 SVG**，并对构图质量做 17 项机械检查，产出机器可读回执。自动布局、零 JS、亮色优先 + `prefers-color-scheme: dark`、单图通常 < 15 KB。
+把「结构化图描述（IR JSON）」渲染为**可嵌入文档的静态 SVG**，并对构图质量做 20 项机械检查，产出机器可读回执。自动布局、零 JS、亮色优先 + `prefers-color-scheme: dark`、单图通常 < 15 KB。
 
 **本技能自包含**：只认 IR JSON，不依赖任何外部 skill 或业务语义。
 
@@ -57,15 +57,18 @@ agent_created: true
 ## CLI 用法
 
 ```bash
-archsvg doctor                                              # 环境自检，全绿打印 "archsvg is ready."
+archsvg doctor                                              # 环境自检（含文档↔代码常量一致性），全绿打印 "archsvg is ready."
+archsvg test                                                # 跑 tests/*.test.mjs（零依赖，改度量/常量后必跑）
 archsvg guide "<场景>"                                      # 推荐图类型 + 理由 + 最简 IR 骨架
 archsvg validate <type> <input.json> [--quality standard|showcase] [--json]
 archsvg render   <type> <input.json> <output.svg> [--quality standard|showcase] [--json]
 ```
 
 - `<type>` ∈ `architecture` | `flow` | `sequence`，且必须与 IR 内 `type` 一致。
-- `--quality`：`standard` = 14 项（10 构图 + no_ascii + no_base64 + text_no_stroke + ref_reachable）；`showcase` = 17 项全过。默认 `standard`。
+- `--quality`：`standard` = 15 项（11 构图 + no_ascii + no_base64 + marker_contract + ref_reachable）；`showcase` = 20 项全过。默认 `standard`。
 - `--json`：回执以 JSON 输出（见 `references/diagram-contract.md`）；非 `--json` 为人类可读逐项结果。
+- validate 与 render **跑同一批检查**（validate 也先在内存渲染一份产物），故「validate 通过」等价于「render 会通过」。
+- 改了字号/盒宽/标定系数后，除 `test` 与 `doctor` 外还要跑一次渲染级复核（见 `references/design-system.md` §2.3）。
 
 ### 退出码
 
@@ -78,11 +81,25 @@ archsvg render   <type> <input.json> <output.svg> [--quality standard|showcase] 
 
 - **产物路径**：`output.svg` 绝对路径；
 - **类型**：`type`；
-- **验证摘要**：档位 + `passed/total` + 失败项名（showcase 须 `15/15`）；
+- **验证摘要**：档位 + `passed/total` + 失败项名（showcase 须 `20/20`）；
 - **回执**：`--json` 时直接转发回执；非 `--json` 时总结 `ok` 与失败诊断。
 
 ## 参考文档
 
-- `references/design-system.md` —— **固定风格约定 + 可复制 fewshot**：域→role 配色映射、文案规范（节点/边/caption）、布局三原则、出图前自检 5 条。**写第一版 IR 前先读它**，能省掉大半返工。
+- `references/design-system.md` —— **固定风格约定 + 可复制 fewshot**：域→role 配色映射、字级/线宽表、**字宽标定表与盒宽公式**、渲染级复核命令、文案规范、布局三原则、出图前自检 6 条。**写第一版 IR 前先读它**，能省掉大半返工。
 - `references/diagram-spec.md` —— IR 字段完整说明、`role` 三域语义、布局规则（含分带与列心漂移规律）、修复优先级。
-- `references/diagram-contract.md` —— Diagnostic / Check / 回执契约、17 项检查逐项说明、退出码表。
+- `references/diagram-contract.md` —— Diagnostic / Check / 回执契约、20 项检查逐项说明、档位项数、文档口径断言、退出码表。
+
+## 代码结构（改代码前先看）
+
+| 文件 | 职责 | 改它的后果 |
+|:---|:---|:---|
+| `lib/typography.mjs` | **字号 / 盒几何 / 线宽 / 图例 / 画布 / 时序 常量** | 改一处即全局生效；`doctor` 会断言文档与它一致 |
+| `lib/text-metrics.mjs` | 字符宽度系数表、宽度估算、折行 | 改系数必过 `tests/text-metrics.test.mjs`，再跑渲染级复核 |
+| `lib/markers.mjs` | 箭头 marker 契约（id 集合 + defs 几何 + kind→style） | `marker_contract` 检查双向断言，勿在别处硬编码 id |
+| `lib/theme.mjs` | 配色 token、CSS 生成（字号由 `typography.mjs` 注入） | 影响 `theme_readable` 对比度 |
+| `lib/layout.mjs` | 自动布局（纯计算） | 坐标改动须同时平移 `cx/cy`（`node_text_in_box` 会拦） |
+| `lib/render.mjs` | IR → SVG 字符串 | **不得出现裸数值**，全部引用常量模块 |
+| `lib/geometry.mjs` / `lib/diagnostics.mjs` | vendor（archify，MIT） | **禁止修改**，仅可追加归属头 |
+| `tests/*.test.mjs` | 零依赖断言（`archsvg test`） | 改上面任一项后必跑 |
+| `tests/*.tool.mjs` | 需 headless 浏览器的工具，不属 `archsvg test` | 改度量/渲染后手动跑 |
