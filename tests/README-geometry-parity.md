@@ -27,10 +27,10 @@ node bin/archsvg.mjs test                     # 跑 parity（含另外两个自�
 
 ## 语料构成
 
-共 1255 条。真实数据来自 `samples/*.json` + `examples/*.json` 共 9 个 IR：逐个
+共 1271 条。真实数据来自 `samples/*.json` + `examples/*.json` 共 9 个 IR：逐个
 `layout(ir)` 后，**严格按 `lib/checks/composition.mjs` 与 `lib/layout.mjs` 的真实调用方式**
 重建每个入口的入参（照 `buildRoutes()` / `boxRoutes()` / `buildLabelRect()` /
-`placeLabels()` 复刻，未改动任何生产文件）。合成边界 181 条，覆盖：
+`placeLabels()` 复刻，未改动任何生产文件）。合成边界 197 条，覆盖：
 
 - `rectsOverlap`：相切 / 恰好等于 gap / 略小于 gap / 负 gap / 包含 / 角接触 / 零尺寸 / 负尺寸 / NaN、Infinity（含非有限 gap）
 - `segmentIntersectsRect`：穿过 / 擦边 / 擦角 / 内含 / 在外 / 退化为一点 / gap 外扩恰到 / `start`/`end` 缺失（当前实现抛 TypeError，如实冻结）
@@ -40,6 +40,11 @@ node bin/archsvg.mjs test                     # 跑 parity（含另外两个自�
 - `collectBorderRuns`：与边框完全重合 / 相距 1px / epsilon 带 / `frames` 为空 / `shape:"line"` / 圆角裁剪与 clamp / `radius` 为字符串或 NaN / frame 零负尺寸 / 路由用 `segments` 数组 / 非有限点
 - `collectRouteRhythmIssues`：中间段恰好 16 / 15.9 / epsilon 带 15.99995 / 恰好 8 / 7.9 / epsilon 带 7.99995 / 端点段 8 与 15.9 / 零长段 / 多问题
 - `isFinitePoint`：全有限 / `-0` / 空参数 / NaN / ±Infinity / 字符串 / null / undefined / 布尔 / 对象 / 嵌套数组
+
+> 另有 **16 条“规格闭合”语料**（tag 前缀 `spec@`，在生成器里**最后追加**，因此不改动上面
+> 已有条目的 `#seq`）：补齐 gap 缺省值、负 gap 收缩、最近段被选中并回指、阈值/长度 epsilon
+> 带的另一侧、同侧多段合并计数、曼哈顿段长、`target-stub` 位置、走廊等长候选的 tie-break
+> 等——这些是 `lib/geometry.spec.md` 每条断言所需的直接证据。
 
 ## ⚠️ 可证伪性验证（必做，且日后新增语料后要重做）
 

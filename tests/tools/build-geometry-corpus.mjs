@@ -719,6 +719,74 @@ function addIsFinitePointSynthetic() {
 }
 
 // =====================================================================
+// 规格闭合语料（黑盒规格每条断言都要有语料支撑；本组为新补条目）
+//
+// 刻意放在**最后**追加：push() 的序号在 push 当时分配，因此本组不会改动
+// 已有条目的 #seq，README 里引用的旧 id 保持有效。
+// =====================================================================
+function addSpecClosureSynthetic() {
+  const S = 'synthetic';
+  const a = { x: 0, y: 0, width: 10, height: 10 };
+  const box = { x: 0, y: 0, width: 20, height: 20 };
+
+  // ---- rectsOverlap：gap 缺省 = 0 ----
+  push(S, 'spec@rectsOverlap:default-gap-tangent', 'rectsOverlap', [a, { x: 10, y: 0, width: 10, height: 10 }]);
+  push(S, 'spec@rectsOverlap:default-gap-near', 'rectsOverlap', [a, { x: 9, y: 0, width: 10, height: 10 }]);
+
+  // ---- segmentIntersectsRect：gap 缺省 = 0；负 gap 收缩判定盒 ----
+  push(S, 'spec@segmentIntersectsRect:default-gap-outside', 'segmentIntersectsRect',
+    [{ start: [25, 10], end: [30, 10] }, box]);
+  push(S, 'spec@segmentIntersectsRect:negative-gap-pulls-in', 'segmentIntersectsRect',
+    [{ start: [19, 10], end: [25, 10] }, box, -2]);
+  push(S, 'spec@segmentIntersectsRect:zero-gap-same-segment-inside', 'segmentIntersectsRect',
+    [{ start: [19, 10], end: [25, 10] }, box, 0]);
+
+  // ---- collectLabelRouteClearance：最近段被选中并回指；epsilon 带方向；等距取先出现段 ----
+  const lab = (d, extra = {}) => ({
+    label: 'L', relationIndex: 1,
+    relation: { id: 'L1', from: 'x', to: 'y', label: 'L' },
+    rect: { x: 40, y: d, width: 20, height: 10 }, ...extra,
+  });
+  push(S, 'spec@collectLabelRouteClearance:nearest-segment-reported', 'collectLabelRouteClearance', [{
+    labels: [{ label: 'L', relationIndex: 1, relation: { id: 'L1', from: 'x', to: 'y' }, rect: { x: 88, y: 5, width: 20, height: 10 } }],
+    routedRelations: [route('R1', 'a', 'b', [[0, 0], [100, 0], [100, 40]])],
+    threshold: 15,
+  }]);
+  push(S, 'spec@collectLabelRouteClearance:clearance-in-epsilon-band', 'collectLabelRouteClearance',
+    [{ labels: [lab(14.99995)], routedRelations: [route('R1', 'a', 'b', [[0, 0], [100, 0]])], threshold: 15 }]);
+  push(S, 'spec@collectLabelRouteClearance:clearance-just-below-band', 'collectLabelRouteClearance',
+    [{ labels: [lab(14.9998)], routedRelations: [route('R1', 'a', 'b', [[0, 0], [100, 0]])], threshold: 15 }]);
+  push(S, 'spec@collectLabelRouteClearance:segment-tie-earliest-wins', 'collectLabelRouteClearance',
+    [{ labels: [lab(5)], routedRelations: [route('R1', 'a', 'b', [[0, 0], [100, 0], [0, 0]])], threshold: 15 }]);
+
+  // ---- collectAmbiguousCorridors：等长候选保留先遍历到的段对（严格大于才替换）----
+  push(S, 'spec@collectAmbiguousCorridors:tie-earliest-pair-wins', 'collectAmbiguousCorridors', [{
+    routedRelations: [
+      route('R1', 'a1', 'a2', [[0, 0], [60, 0], [60, 10], [0, 10]]),
+      route('R2', 'b1', 'b2', [[20, 0], [80, 0], [80, 10], [20, 10]]),
+    ],
+    minOverlapPx: 8,
+  }]);
+
+  // ---- collectBorderRuns：同一侧多段合并后取长度和；bottom 边 ----
+  const frame = (overrides = {}) => ({ id: 'f1', x: 0, y: 0, width: 100, height: 80, label: 'F', radius: 0, ...overrides });
+  push(S, 'spec@collectBorderRuns:merge-same-side', 'collectBorderRuns',
+    [{ routedRelations: [route('R1', 'a', 'b', [[0, 0], [30, 0], [0, 0], [50, 0]], 0)], frames: [frame()] }]);
+  push(S, 'spec@collectBorderRuns:bottom-side', 'collectBorderRuns',
+    [{ routedRelations: [route('R1', 'a', 'b', [[10, 80], [60, 80]], 0)], frames: [frame()] }]);
+
+  // ---- collectRouteRhythmIssues：曼哈顿长度口径；target-stub 存在；epsilon 带另一侧 ----
+  push(S, 'spec@collectRouteRhythmIssues:diagonal-manhattan-length', 'collectRouteRhythmIssues',
+    [{ routedRelations: [route('R1', 'a', 'b', [[0, 0], [3, 4], [100, 4]], 0)], interiorSegmentPx: 16, microSegmentPx: 8 }]);
+  push(S, 'spec@collectRouteRhythmIssues:target-stub-micro', 'collectRouteRhythmIssues',
+    [{ routedRelations: [route('R1', 'a', 'b', [[0, 0], [100, 0], [100, 5]], 0)], interiorSegmentPx: 16, microSegmentPx: 8 }]);
+  push(S, 'spec@collectRouteRhythmIssues:interior-15.99985', 'collectRouteRhythmIssues',
+    [{ routedRelations: [route('R1', 'a', 'b', [[0, 0], [50, 0], [50, 15.99985], [100, 15.99985]], 0)], interiorSegmentPx: 16, microSegmentPx: 8 }]);
+  push(S, 'spec@collectRouteRhythmIssues:interior-7.99985', 'collectRouteRhythmIssues',
+    [{ routedRelations: [route('R1', 'a', 'b', [[0, 0], [50, 0], [50, 7.99985], [100, 8]], 0)], interiorSegmentPx: 16, microSegmentPx: 8 }]);
+}
+
+// =====================================================================
 // 主流程
 // =====================================================================
 function main() {
@@ -739,6 +807,7 @@ function main() {
   addBorderRunsSynthetic();
   addRhythmSynthetic();
   addIsFinitePointSynthetic();
+  addSpecClosureSynthetic();
 
   // 去重：只丢弃 (fn, 入参) 完全相同的条目。它们对 baseline 没有任何额外信息量，
   // 却会成比例抬高 golden 体积。id 在 push 时分配，去重后仍唯一。
