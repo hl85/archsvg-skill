@@ -28,7 +28,7 @@ SVG 是**纯文本**，所以它天然对 LLM 友好（能读、能写、能改�
 | 一次性输出 | 画错没有诊断，只能整体重来 |
 | 风格漂移 | 每次生成一个样，跨文档、跨仓库都不一致 |
 
-archsvg 的做法是**让模型输出结构，而不是输出像素**，并在出图前**做 25 项机械检查**：
+archsvg 的做法是**让模型输出结构，而不是输出像素**，并在出图前**做 26 项机械检查**：
 
 ```
 自然语言 / 代码 / 文档片段
@@ -263,7 +263,7 @@ archsvg render   <type> <input.json> <output.svg> [--quality standard|showcase] 
 ```
 
 - `<type>` ∈ `architecture` | `flow` | `sequence`
-- `--quality`：`standard` 17 项 / `showcase` 25 项（默认 `standard`）
+- `--quality`：`standard` 18 项 / `showcase` 26 项（默认 `standard`）
 - `--json`：输出机器可读回执，含 `checks`、`composition.summary`、`artifact.sha256`
 - `validate` 与 `render` **跑同一批检查**（都会先渲染一份产物），故"validate 通过"等价于"render 会通过"
 
@@ -277,7 +277,7 @@ archsvg render   <type> <input.json> <output.svg> [--quality standard|showcase] 
 
 ### 质量门禁
 
-**构图检查 11 项** —— 坐标有限性、节点重叠、文字锚点在盒内、文案截断、连线穿越无关节点、标签净空、
+**构图检查 12 项** —— 坐标有限性、**声明实体覆盖**、节点重叠、文字锚点在盒内、文案截断、连线穿越无关节点、标签净空、
 端点正交、走廊歧义、贴边借道、转折节奏、图例净空。
 
 **文档集成检查 14 项** —— ASCII 画图残留、base64 内嵌、文字描边污染、箭头 marker 契约、产物文字适配、
@@ -337,7 +337,7 @@ archsvg/
 │   ├── render.mjs               # 静态 SVG 渲染（不含裸数值，全部引用常量模块）
 │   ├── schema.mjs               # 运行时 schema 校验（JSON Schema 子集）
 │   └── checks/
-│       ├── composition.mjs      # 构图检查 11 项
+│       ├── composition.mjs      # 构图检查 12 项
 │       └── document.mjs         # 文档集成检查 14 项
 ├── schemas/{common,architecture,flow,sequence}.schema.json
 ├── tests/                       # 零依赖测试（archsvg test）
@@ -349,7 +349,7 @@ archsvg/
 └── references/
     ├── design-system.md         # 固定风格约定 + fewshot（域→role 配色、文案规范、自检）
     ├── diagram-spec.md          # IR 规范、role 语义、布局规则、修复优先级
-    └── diagram-contract.md      # 诊断 / 回执契约、25 项检查逐项说明
+    └── diagram-contract.md      # 诊断 / 回执契约、26 项检查逐项说明
 ```
 
 ---
@@ -402,6 +402,7 @@ node tests/verify-rendered-svg.tool.mjs
 
 | 版本 | 变化 |
 |:---|:---|
+| **v0.1.6** | 新增构图检查 `entity_coverage`（25 → 26 项）：堵住「IR 声明了、产物里却没有」的**静默丢弃** |
 | **v0.1.5** | 去掉 vendored 的第三方几何内核，改为自研（本 skill 自此不含任何第三方代码）；行为由 1278 条冻结基线锁定 |
 | **v0.1.4** | 新增 5 项文档侧检查（20 → 25 项）；「画幅体检」从人工判据变为可断言契约 |
 | **v0.1.3** | 常量单点化（`typography` / `text-metrics` / `markers`）；字宽系数改为实测标定；新增 `marker_contract` / `svg_text_fits` / `text_not_truncated` |
@@ -409,6 +410,30 @@ node tests/verify-rendered-svg.tool.mjs
 | **v0.1.0** | 首个版本：IR JSON → 自动布局 → 静态 SVG，三类型 + 机械验证 |
 
 ### 详细条目
+
+#### v0.1.6 —— 新增 `entity_coverage`，堵住静默丢弃（25 → 26 项）
+
+起因是排查一张图的观感问题时，实测发现**IR 里声明了、产物里却没有**的情况**完全静默**：
+
+| 形态 | 后果 |
+|:---|:---|
+| `flow` + `stages` 模式下 `node.stage` 缺失或值不存在 | 该节点**不在任何列里** → 直接不渲染 |
+| 三种类型下 `edge`/`message` 的一端点 id 不存在 | 布局里 `if (!fb || !tb) continue;` → **边/消息被跳过** |
+
+两者都**通过全部 25 项检查、零提示**——因为既有检查检查的正是「已被丢弃之后」的集合，
+看不到缺口。而"图看着完整、拓扑却是错的"比报错更危险。
+
+对照：`architecture` 模式会把 `group` 悬空的节点塞进「未分组附加带」（不丢），
+其引发的边穿越还会被 `relationship_crossings` 拦下 —— 三种类型的健壮性并不一致。
+
+新增的 `entity_coverage` 把 IR 的声明与 LayoutResult 的实际产出对账：
+节点/参与者逐个核对，边/消息按 `from→to` **多重集**核对（同端点重复边也能查出）。
+**空容器不算丢弃**（它的框仍被渲染），只在通过时作为附注列出。
+
+- 档位：构图检查（两档都跑）→ `standard` 18 项 / `showcase` 26 项
+- 配 2 条负向用例：`stage` 两种错误形态 + 三种类型下的悬空端点边
+- 刻意**不改**框高策略：「分列框对齐到最高列」是观感取舍，实测改成「各自贴合」只是
+  把空白从带内搬到画布上，并不更美观；且它是主观偏好，不该由全局常量替所有图决定
 
 #### v0.1.5 —— 去掉 vendored 的第三方几何内核，改为净室自研（本 skill 自此不含任何第三方代码）：
 

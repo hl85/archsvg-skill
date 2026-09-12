@@ -1,6 +1,6 @@
 # archsvg 诊断与回执契约
 
-Diagnostic 对象、Check 对象、25 项检查逐项说明、退出码表、回执 JSON schema。
+Diagnostic 对象、Check 对象、26 项检查逐项说明、退出码表、回执 JSON schema。
 
 ---
 
@@ -48,18 +48,19 @@ schema 层（`validateSchema`）产出的诊断。携带 `subject` / `evidence` 
 
 ---
 
-## 3. 25 项检查逐项说明
+## 3. 26 项检查逐项说明
 
-构图 11 项（8 项复用自研几何内核 `lib/geometry.mjs`，3 项为自研不变量）+ 文档集成专项 14 项。
+构图 12 项（8 项复用自研几何内核 `lib/geometry.mjs`，4 项为自研不变量）+ 文档集成专项 14 项。
 
 > 名清单的**唯一出处**是 `COMPOSITION_CHECK_NAMES` / `DOCUMENT_CHECK_NAMES` / `STANDARD_DOCUMENT_CHECK_NAMES`
 > （分别在两个 checks 模块里导出）。`archsvg doctor` 会断言本节各项数与代码一致。
 
-### 3.1 构图 11 项
+### 3.1 构图 12 项
 
 | 名称 | 检查什么 | 失败意味着 | 典型修法 |
 |:---|:---|:---|:---|
 | `finite_svg` | 所有坐标均为有限数（无 NaN/Infinity） | 布局器算出非有限坐标，通常 IR 缺字段 | 补 IR 必填字段 |
+| `entity_coverage` | IR 声明的**每个节点/参与者**与**每条边/消息**都出现在产物里 | **静默丢弃**：`flow` 的 stages 模式下 `stage` 不匹配的节点不渲染；三种类型下端点不存在的边/消息被跳过 —— 图看着完整、拓扑却是错的，而既有检查都看不见（它们检查的正是丢弃之后的集合） | 核对 `node.stage` 是否匹配 `stages[].id`；核对边/消息两端 id 是否存在 |
 | `node_overlap` | 节点两两不相交（gap≥8px） | 节点太挤/分组过密 | 拆组、减节点、拆图（≤24） |
 | `node_text_in_box` | 每个 box 的文字锚点 (cx,cy) 落在盒内 | 坐标变换漏改 cx/cy → 色块与文字分离（画布会出现空色块） | 回查 layout 的坐标变换，须同时平移 cx/cy |
 | `text_not_truncated` | 没有文案被折行上限截断成 `…` | 文案超 2 行上限，**信息被吃掉** | 缩短 label/sublabel，或拆成两个节点；不要调大盒宽绕过（240 是有意上限） |
@@ -95,8 +96,8 @@ schema 层（`validateSchema`）产出的诊断。携带 `subject` / `evidence` 
 
 ### 3.3 档位 → 检查项数
 
-- `standard`：11 构图 + `no_ascii` + `no_base64` + `marker_contract` + `ref_reachable` + `svg_a11y` + `svg_hygiene` = **17 项**
-- `showcase`：25 项**全过**
+- `standard`：12 构图 + `no_ascii` + `no_base64` + `marker_contract` + `ref_reachable` + `svg_a11y` + `svg_hygiene` = **18 项**
+- `showcase`：26 项**全过**
 
 > **validate 与 render 跑的是同一批检查**：validate 也会先在内存里渲染一份产物，
 > 故「validate 通过」即等价于「render 会通过」。历史上 validate 不渲染，
@@ -152,7 +153,7 @@ schema 层（`validateSchema`）产出的诊断。携带 `subject` / `evidence` 
   "composition": {
     "profile": "showcase",
     "status": "pass",
-    "summary": { "total": 25, "passed": 25, "failed": 0 }
+    "summary": { "total": 26, "passed": 26, "failed": 0 }
   },
   "artifact": { "bytes": 7809, "sha256": "2b00a5ee..." }
 }

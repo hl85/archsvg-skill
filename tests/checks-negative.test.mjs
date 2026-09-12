@@ -3,8 +3,8 @@
 // 只断言「好输入通过」是不够的 —— 一个恒为 ok 的检查也能让所有样例变绿。
 // 因此这里为每项检查构造**必定违规**的输入，断言它确实报错，并断言同类正常输入通过。
 //
-// 测试对象：text_not_truncated（构图）/ marker_contract、svg_text_fits、svg_a11y、svg_hygiene、
-// weight_whitelist、role_budget、min_font_size（文档，产物级 / IR 级）。
+// 测试对象：entity_coverage、text_not_truncated（构图）/ marker_contract、svg_text_fits、svg_a11y、
+// svg_hygiene、weight_whitelist、role_budget、min_font_size（文档，产物级 / IR 级）。
 
 import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -225,6 +225,63 @@ export const cases = [
       const good = runDoc(writeTmp('fontsize-good.svg', GOOD_SVG)).get('min_font_size');
       if (!good.ok) throw new Error(`正常产物被误判：${good.details[0]}`);
       return `画布宽 ${m[1]} → 2000 被拦下，正常产物通过`;
+    },
+  },
+  {
+    name: 'entity_coverage：flow+stages 下 stage 不匹配的节点必须被拦下',
+    run() {
+      const ir = readSample('ci-pipeline.flow.json');
+      const target = ir.nodes.find((n) => n.id === 'rollback');
+      const original = target.stage;
+      // 形态一：stage 值不存在
+      target.stage = 'no-such-stage';
+      let c = runCompositionChecks(ir, layout(ir), 'showcase').find((x) => x.name === 'entity_coverage');
+      if (!c) throw new Error('找不到 entity_coverage 检查项');
+      if (c.ok) throw new Error('stage 值不存在时节点被静默丢弃，未被拦下');
+      if (!/rollback/.test(c.details.join(''))) throw new Error(`报错未指明丢失的节点：${c.details[0]}`);
+      // 形态二：stage 缺失
+      delete target.stage;
+      c = runCompositionChecks(ir, layout(ir), 'showcase').find((x) => x.name === 'entity_coverage');
+      if (c.ok) throw new Error('stage 缺失时节点被静默丢弃，未被拦下');
+      // 恢复后应通过
+      target.stage = original;
+      const again = runCompositionChecks(ir, layout(ir), 'showcase').find((x) => x.name === 'entity_coverage');
+      if (!again.ok) throw new Error(`恢复后仍失败：${again.details[0]}`);
+      return `stage 值不存在 / stage 缺失两种形态均被拦下，恢复后通过`;
+    },
+  },
+  {
+    name: 'entity_coverage：端点不存在的边/消息必须被拦下',
+    run() {
+      const checks = [];
+      // architecture / flow：edge 指向不存在的节点
+      for (const [file, type] of [['order-system.architecture.json', 'architecture'], ['ci-pipeline.flow.json', 'flow']]) {
+        const ir = readSample(file);
+        const original = ir.edges[0].to;
+        ir.edges[0].to = 'ghost-node';
+        const c = runCompositionChecks(ir, layout(ir), 'showcase').find((x) => x.name === 'entity_coverage');
+        if (c.ok) throw new Error(`${type}：端点不存在的边被静默丢弃，未被拦下`);
+        if (!/ghost-node/.test(c.details.join(''))) throw new Error(`${type}：报错未指明丢失的边：${c.details[0]}`);
+        ir.edges[0].to = original;
+        if (!runCompositionChecks(ir, layout(ir), 'showcase').find((x) => x.name === 'entity_coverage').ok) {
+          throw new Error(`${type}：恢复后仍失败`);
+        }
+        checks.push(type);
+      }
+      // sequence：message 指向不存在的参与者
+      {
+        const ir = readSample('oauth-login.sequence.json');
+        const original = ir.messages[0].from;
+        ir.messages[0].from = 'ghost-participant';
+        const c = runCompositionChecks(ir, layout(ir), 'showcase').find((x) => x.name === 'entity_coverage');
+        if (c.ok) throw new Error('sequence：端点不存在的消息被静默丢弃，未被拦下');
+        ir.messages[0].from = original;
+        if (!runCompositionChecks(ir, layout(ir), 'showcase').find((x) => x.name === 'entity_coverage').ok) {
+          throw new Error('sequence：恢复后仍失败');
+        }
+        checks.push('sequence');
+      }
+      return `${checks.join(' / ')} 三种类型下的悬空端点边均被拦下`;
     },
   },
 ];
