@@ -7,20 +7,30 @@
 --arrow: #94a3b8;
 --grid: #e2e8f0;
 --role-control-fill: #fdf4ff;
---role-control-stroke: #a855f7;
+--role-control-stroke: #7e22ce;
 --role-control-text: #7e22ce;
+--frame-control-fill: #fbf7fe;
+--frame-control-stroke: #7e22ce;
 --role-capability-fill: #f0fdf4;
---role-capability-stroke: #22c55e;
+--role-capability-stroke: #166534;
 --role-capability-text: #166534;
+--frame-capability-fill: #f4fcf8;
+--frame-capability-stroke: #166534;
 --role-interaction-fill: #eff6ff;
---role-interaction-stroke: #3b82f6;
+--role-interaction-stroke: #1e40af;
 --role-interaction-text: #1e40af;
+--frame-interaction-fill: #f4f8fe;
+--frame-interaction-stroke: #1e40af;
 --role-warn-fill: #fef2f2;
---role-warn-stroke: #ef4444;
+--role-warn-stroke: #b91c1c;
 --role-warn-text: #b91c1c;
+--frame-warn-fill: #fbf6f7;
+--frame-warn-stroke: #b91c1c;
 --role-neutral-fill: #f8fafc;
---role-neutral-stroke: #94a3b8;
+--role-neutral-stroke: #334155;
 --role-neutral-text: #334155;
+--frame-neutral-fill: #f8fafc;
+--frame-neutral-stroke: #334155;
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -34,18 +44,28 @@
   --role-control-fill: rgba(168,85,247,0.18);
   --role-control-stroke: #c084fc;
   --role-control-text: #e9d5ff;
+  --frame-control-fill: rgba(168,85,247,0.1);
+  --frame-control-stroke: #c084fc;
   --role-capability-fill: rgba(74,222,128,0.16);
   --role-capability-stroke: #4ade80;
   --role-capability-text: #bbf7d0;
+  --frame-capability-fill: rgba(74,222,128,0.1);
+  --frame-capability-stroke: #4ade80;
   --role-interaction-fill: rgba(96,165,250,0.16);
   --role-interaction-stroke: #60a5fa;
   --role-interaction-text: #dbeafe;
+  --frame-interaction-fill: rgba(96,165,250,0.1);
+  --frame-interaction-stroke: #60a5fa;
   --role-warn-fill: rgba(239,68,68,0.16);
   --role-warn-stroke: #f87171;
   --role-warn-text: #fecaca;
+  --frame-warn-fill: rgba(239,68,68,0.1);
+  --frame-warn-stroke: #f87171;
   --role-neutral-fill: rgba(148,163,184,0.14);
   --role-neutral-stroke: #94a3b8;
   --role-neutral-text: #cbd5e1;
+  --frame-neutral-fill: rgba(148,163,184,0.1);
+  --frame-neutral-stroke: #94a3b8;
   }
 }
 
@@ -69,11 +89,16 @@ text { stroke: none; }
 .arrow-line { fill: none; stroke: var(--arrow); stroke-width: 1.4; }
 .role-control { fill: var(--role-control-fill); stroke: var(--role-control-stroke); }
 .role-control .node { fill: var(--role-control-fill); stroke: var(--role-control-stroke); }
+.frame-control { fill: var(--frame-control-fill); stroke: var(--frame-control-stroke); }
 .role-capability { fill: var(--role-capability-fill); stroke: var(--role-capability-stroke); }
 .role-capability .node { fill: var(--role-capability-fill); stroke: var(--role-capability-stroke); }
+.frame-capability { fill: var(--frame-capability-fill); stroke: var(--frame-capability-stroke); }
 .role-interaction { fill: var(--role-interaction-fill); stroke: var(--role-interaction-stroke); }
 .role-interaction .node { fill: var(--role-interaction-fill); stroke: var(--role-interaction-stroke); }
+.frame-interaction { fill: var(--frame-interaction-fill); stroke: var(--frame-interaction-stroke); }
 .role-warn { fill: var(--role-warn-fill); stroke: var(--role-warn-stroke); }
 .role-warn .node { fill: var(--role-warn-fill); stroke: var(--role-warn-stroke); }
+.frame-warn { fill: var(--frame-warn-fill); stroke: var(--frame-warn-stroke); }
 .role-neutral { fill: var(--role-neutral-fill); stroke: var(--role-neutral-stroke); }
-.role-neutral .node { fill: var(--role-neutral-fill); stroke: var(--role-neutral-stroke); }</style><style>.edge-label-bg{fill:var(--canvas);stroke:none;}</style><defs><marker id="arrow" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path class="arrow-fill" d="M0,0 L8,4 L0,8 Z"/></marker><marker id="arrow-async" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path class="arrow-line" d="M0,0 L8,4 L0,8"/></marker><marker id="arrow-fallback" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path class="arrow-line" d="M0,0 L8,4 L0,8"/></marker></defs><text class="title" x="171" y="32" text-anchor="middle">线上告警分级决策树</text><path class="edge" d="M 171 114 L 171 186" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="168.12" y="140.5" width="33.76" height="19" rx="3"/><text class="edge-label" x="185" y="150" text-anchor="middle">评估</text><path class="edge" d="M 171 244 L 171 280 L 241 280 L 241 316" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="209.06" y="270.5" width="21.88" height="19" rx="3"/><text class="edge-label" x="220" y="280" text-anchor="middle">是</text><path class="edge" d="M 171 244 L 171 280 L 97 280 L 97 316" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="109.06" y="270.5" width="21.88" height="19" rx="3"/><text class="edge-label" x="120" y="280" text-anchor="middle">否</text><path class="edge" d="M 97 374 L 97 446" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="60.06" y="400.5" width="21.88" height="19" rx="3"/><text class="edge-label" x="71" y="410" text-anchor="middle">是</text><path class="edge" d="M 97 374 L 97 410 L 252 410 L 252 446" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="178.06" y="400.5" width="21.88" height="19" rx="3"/><text class="edge-label" x="189" y="410" text-anchor="middle">否</text><g class="role-warn"><rect class="node" x="117" y="56" width="109" height="58" rx="8"/><text class="n-label" x="171" y="76" text-anchor="middle">告警触发</text><text class="n-sub" x="171" y="94" text-anchor="middle">AlertManager</text></g><g class="role-control"><rect class="node" x="111" y="186" width="120" height="58" rx="8"/><text class="n-label" x="171" y="206" text-anchor="middle">影响面 ≥ 30%</text><text class="n-sub" x="171" y="224" text-anchor="middle">ScopeJudge</text></g><g class="role-control"><rect class="node" x="36" y="316" width="123" height="58" rx="8"/><text class="n-label" x="97" y="336" text-anchor="middle">核心链路受损</text><text class="n-sub" x="97" y="354" text-anchor="middle">PathJudge</text></g><g class="role-warn"><rect class="node" x="175" y="316" width="132" height="58" rx="8"/><text class="n-label" x="241" y="336" text-anchor="middle">P0 电话 + 拉群</text><text class="n-sub" x="241" y="354" text-anchor="middle">5 分钟响应</text></g><g class="role-interaction"><rect class="node" x="24" y="446" width="146" height="58" rx="8"/><text class="n-label" x="97" y="466" text-anchor="middle">P1 值班 IM 通知</text><text class="n-sub" x="97" y="484" text-anchor="middle">30 分钟响应</text></g><g class="role-neutral"><rect class="node" x="186" y="446" width="132" height="58" rx="8"/><text class="n-label" x="252" y="466" text-anchor="middle">P2 工单 + 邮件</text><text class="n-sub" x="252" y="484" text-anchor="middle">次工作日处理</text></g><g class="legend"><rect class="legend-box" x="180" y="520" width="138" height="48" rx="6"/><rect class="role-control" x="190" y="523" width="14" height="14" rx="3"/><text class="legend-label" x="212" y="532" text-anchor="start">控制</text><rect class="role-interaction" x="255.76" y="523" width="14" height="14" rx="3"/><text class="legend-label" x="277.76" y="532" text-anchor="start">交互</text><rect class="role-warn" x="190" y="541" width="14" height="14" rx="3"/><text class="legend-label" x="212" y="550" text-anchor="start">告警</text><rect class="role-neutral" x="255.76" y="541" width="14" height="14" rx="3"/><text class="legend-label" x="277.76" y="550" text-anchor="start">中性</text></g><text class="caption" x="171" y="607" text-anchor="middle">图 2-2 · 线上告警分级决策树（P0 / P1 / P2 三级出口）</text></svg>
+.role-neutral .node { fill: var(--role-neutral-fill); stroke: var(--role-neutral-stroke); }
+.frame-neutral { fill: var(--frame-neutral-fill); stroke: var(--frame-neutral-stroke); }</style><style>.edge-label-bg{fill:var(--canvas);stroke:none;}</style><defs><marker id="arrow" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path class="arrow-fill" d="M0,0 L8,4 L0,8 Z"/></marker><marker id="arrow-async" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path class="arrow-line" d="M0,0 L8,4 L0,8"/></marker><marker id="arrow-fallback" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path class="arrow-line" d="M0,0 L8,4 L0,8"/></marker></defs><text class="title" x="171" y="32" text-anchor="middle">线上告警分级决策树</text><path class="edge" d="M 171 114 L 171 186" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="168.12" y="140.5" width="33.76" height="19" rx="3"/><text class="edge-label" x="185" y="150" text-anchor="middle">评估</text><path class="edge" d="M 171 244 L 171 280 L 241 280 L 241 316" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="209.06" y="270.5" width="21.88" height="19" rx="3"/><text class="edge-label" x="220" y="280" text-anchor="middle">是</text><path class="edge" d="M 171 244 L 171 280 L 97 280 L 97 316" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="109.06" y="270.5" width="21.88" height="19" rx="3"/><text class="edge-label" x="120" y="280" text-anchor="middle">否</text><path class="edge" d="M 97 374 L 97 446" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="60.06" y="400.5" width="21.88" height="19" rx="3"/><text class="edge-label" x="71" y="410" text-anchor="middle">是</text><path class="edge" d="M 97 374 L 97 410 L 252 410 L 252 446" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="178.06" y="400.5" width="21.88" height="19" rx="3"/><text class="edge-label" x="189" y="410" text-anchor="middle">否</text><g class="role-warn"><rect class="node" x="117" y="56" width="109" height="58" rx="8"/><text class="n-label" x="171" y="76" text-anchor="middle">告警触发</text><text class="n-sub" x="171" y="94" text-anchor="middle">AlertManager</text></g><g class="role-control"><rect class="node" x="111" y="186" width="120" height="58" rx="8"/><text class="n-label" x="171" y="206" text-anchor="middle">影响面 ≥ 30%</text><text class="n-sub" x="171" y="224" text-anchor="middle">ScopeJudge</text></g><g class="role-control"><rect class="node" x="36" y="316" width="123" height="58" rx="8"/><text class="n-label" x="97" y="336" text-anchor="middle">核心链路受损</text><text class="n-sub" x="97" y="354" text-anchor="middle">PathJudge</text></g><g class="role-warn"><rect class="node" x="175" y="316" width="132" height="58" rx="8"/><text class="n-label" x="241" y="336" text-anchor="middle">P0 电话 + 拉群</text><text class="n-sub" x="241" y="354" text-anchor="middle">5 分钟响应</text></g><g class="role-interaction"><rect class="node" x="24" y="446" width="146" height="58" rx="8"/><text class="n-label" x="97" y="466" text-anchor="middle">P1 值班 IM 通知</text><text class="n-sub" x="97" y="484" text-anchor="middle">30 分钟响应</text></g><g class="role-neutral"><rect class="node" x="186" y="446" width="132" height="58" rx="8"/><text class="n-label" x="252" y="466" text-anchor="middle">P2 工单 + 邮件</text><text class="n-sub" x="252" y="484" text-anchor="middle">次工作日处理</text></g><g class="legend"><rect class="legend-box" x="180" y="520" width="138" height="48" rx="6"/><rect class="role-control" x="190" y="523" width="14" height="14" rx="3"/><text class="legend-label" x="212" y="532" text-anchor="start">控制</text><rect class="role-interaction" x="255.76" y="523" width="14" height="14" rx="3"/><text class="legend-label" x="277.76" y="532" text-anchor="start">交互</text><rect class="role-warn" x="190" y="541" width="14" height="14" rx="3"/><text class="legend-label" x="212" y="550" text-anchor="start">告警</text><rect class="role-neutral" x="255.76" y="541" width="14" height="14" rx="3"/><text class="legend-label" x="277.76" y="550" text-anchor="start">中性</text></g><text class="caption" x="171" y="607" text-anchor="middle">图 2-2 · 线上告警分级决策树（P0 / P1 / P2 三级出口）</text></svg>

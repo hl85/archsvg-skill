@@ -7,20 +7,30 @@
 --arrow: #94a3b8;
 --grid: #e2e8f0;
 --role-control-fill: #fdf4ff;
---role-control-stroke: #a855f7;
+--role-control-stroke: #7e22ce;
 --role-control-text: #7e22ce;
+--frame-control-fill: #fbf7fe;
+--frame-control-stroke: #7e22ce;
 --role-capability-fill: #f0fdf4;
---role-capability-stroke: #22c55e;
+--role-capability-stroke: #166534;
 --role-capability-text: #166534;
+--frame-capability-fill: #f4fcf8;
+--frame-capability-stroke: #166534;
 --role-interaction-fill: #eff6ff;
---role-interaction-stroke: #3b82f6;
+--role-interaction-stroke: #1e40af;
 --role-interaction-text: #1e40af;
+--frame-interaction-fill: #f4f8fe;
+--frame-interaction-stroke: #1e40af;
 --role-warn-fill: #fef2f2;
---role-warn-stroke: #ef4444;
+--role-warn-stroke: #b91c1c;
 --role-warn-text: #b91c1c;
+--frame-warn-fill: #fbf6f7;
+--frame-warn-stroke: #b91c1c;
 --role-neutral-fill: #f8fafc;
---role-neutral-stroke: #94a3b8;
+--role-neutral-stroke: #334155;
 --role-neutral-text: #334155;
+--frame-neutral-fill: #f8fafc;
+--frame-neutral-stroke: #334155;
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -34,18 +44,28 @@
   --role-control-fill: rgba(168,85,247,0.18);
   --role-control-stroke: #c084fc;
   --role-control-text: #e9d5ff;
+  --frame-control-fill: rgba(168,85,247,0.1);
+  --frame-control-stroke: #c084fc;
   --role-capability-fill: rgba(74,222,128,0.16);
   --role-capability-stroke: #4ade80;
   --role-capability-text: #bbf7d0;
+  --frame-capability-fill: rgba(74,222,128,0.1);
+  --frame-capability-stroke: #4ade80;
   --role-interaction-fill: rgba(96,165,250,0.16);
   --role-interaction-stroke: #60a5fa;
   --role-interaction-text: #dbeafe;
+  --frame-interaction-fill: rgba(96,165,250,0.1);
+  --frame-interaction-stroke: #60a5fa;
   --role-warn-fill: rgba(239,68,68,0.16);
   --role-warn-stroke: #f87171;
   --role-warn-text: #fecaca;
+  --frame-warn-fill: rgba(239,68,68,0.1);
+  --frame-warn-stroke: #f87171;
   --role-neutral-fill: rgba(148,163,184,0.14);
   --role-neutral-stroke: #94a3b8;
   --role-neutral-text: #cbd5e1;
+  --frame-neutral-fill: rgba(148,163,184,0.1);
+  --frame-neutral-stroke: #94a3b8;
   }
 }
 
@@ -69,11 +89,16 @@ text { stroke: none; }
 .arrow-line { fill: none; stroke: var(--arrow); stroke-width: 1.4; }
 .role-control { fill: var(--role-control-fill); stroke: var(--role-control-stroke); }
 .role-control .node { fill: var(--role-control-fill); stroke: var(--role-control-stroke); }
+.frame-control { fill: var(--frame-control-fill); stroke: var(--frame-control-stroke); }
 .role-capability { fill: var(--role-capability-fill); stroke: var(--role-capability-stroke); }
 .role-capability .node { fill: var(--role-capability-fill); stroke: var(--role-capability-stroke); }
+.frame-capability { fill: var(--frame-capability-fill); stroke: var(--frame-capability-stroke); }
 .role-interaction { fill: var(--role-interaction-fill); stroke: var(--role-interaction-stroke); }
 .role-interaction .node { fill: var(--role-interaction-fill); stroke: var(--role-interaction-stroke); }
+.frame-interaction { fill: var(--frame-interaction-fill); stroke: var(--frame-interaction-stroke); }
 .role-warn { fill: var(--role-warn-fill); stroke: var(--role-warn-stroke); }
 .role-warn .node { fill: var(--role-warn-fill); stroke: var(--role-warn-stroke); }
+.frame-warn { fill: var(--frame-warn-fill); stroke: var(--frame-warn-stroke); }
 .role-neutral { fill: var(--role-neutral-fill); stroke: var(--role-neutral-stroke); }
-.role-neutral .node { fill: var(--role-neutral-fill); stroke: var(--role-neutral-stroke); }</style><style>.edge-label-bg{fill:var(--canvas);stroke:none;}</style><defs><marker id="arrow" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path class="arrow-fill" d="M0,0 L8,4 L0,8 Z"/></marker><marker id="arrow-async" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path class="arrow-line" d="M0,0 L8,4 L0,8"/></marker><marker id="arrow-fallback" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path class="arrow-line" d="M0,0 L8,4 L0,8"/></marker></defs><text class="title" x="324" y="32" text-anchor="middle">电商订单系统分层架构</text><g><rect class="frame" x="24" y="56" width="600" height="94" rx="10"/><text class="frame-label" x="36" y="74">接入层</text></g><g><rect class="frame" x="24" y="204" width="600" height="94" rx="10"/><text class="frame-label" x="36" y="222">服务层</text></g><g><rect class="frame" x="24" y="352" width="600" height="94" rx="10"/><text class="frame-label" x="36" y="370">存储层</text></g><path class="edge" d="M 165 103 L 478 103" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="287.36" y="107.5" width="69.28" height="19" rx="3"/><text class="edge-label" x="322" y="117" text-anchor="middle">token 校验</text><path class="edge" d="M 104 132 L 104 177 L 128 177 L 128 222" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="101.24" y="167.5" width="57.52" height="19" rx="3"/><text class="edge-label" x="130" y="177" text-anchor="middle">创建订单</text><path class="edge" d="M 214 251 L 230 251" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="245.24" y="241.5" width="57.52" height="19" rx="3"/><text class="edge-label" x="274" y="251" text-anchor="middle">锁定库存</text><path class="edge" d="M 128 222 L 128 208 L 512 208 L 512 222" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="291.24" y="184.5" width="57.52" height="19" rx="3"/><text class="edge-label" x="320" y="194" text-anchor="middle">发起扣款</text><path class="edge" d="M 128 280 L 128 325 L 90 325 L 90 370" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="56.24" y="315.5" width="57.52" height="19" rx="3"/><text class="edge-label" x="85" y="325" text-anchor="middle">订单落库</text><path class="edge edge-dashed" d="M 128 280 L 128 325 L 320 325 L 320 370" marker-end="url(#arrow-async)"/><rect class="edge-label-bg" x="201.18" y="329.5" width="45.64" height="19" rx="3"/><text class="edge-label" x="224" y="339" text-anchor="middle">幂等锁</text><path class="edge edge-dashed" d="M 512 280 L 512 325 L 554 325 L 554 370" marker-end="url(#arrow-async)"/><rect class="edge-label-bg" x="506.36" y="315.5" width="81.28" height="19" rx="3"/><text class="edge-label" x="547" y="325" text-anchor="middle">支付成功事件</text><g class="role-interaction"><rect class="node" x="42" y="74" width="123" height="58" rx="8"/><text class="n-label" x="104" y="94" text-anchor="middle">APIGateway</text><text class="n-sub" x="104" y="112" text-anchor="middle">统一入口</text></g><g class="role-control"><rect class="node" x="478" y="74" width="128" height="58" rx="8"/><text class="n-label" x="542" y="94" text-anchor="middle">AuthService</text><text class="n-sub" x="542" y="112" text-anchor="middle">JWT 鉴权</text></g><g class="role-control"><rect class="node" x="42" y="222" width="172" height="58" rx="8"/><text class="n-label" x="128" y="242" text-anchor="middle">OrderService 订单</text><text class="n-sub" x="128" y="260" text-anchor="middle">订单编排</text></g><g class="role-capability"><rect class="node" x="230" y="222" width="171" height="58" rx="8"/><text class="n-label" x="316" y="242" text-anchor="middle">InventoryService</text><text class="n-sub" x="316" y="260" text-anchor="middle">库存扣减</text></g><g class="role-capability"><rect class="node" x="417" y="222" width="189" height="58" rx="8"/><text class="n-label" x="512" y="242" text-anchor="middle">PaymentService 支付</text><text class="n-sub" x="512" y="260" text-anchor="middle">支付网关适配</text></g><g class="role-neutral"><rect class="node" x="42" y="370" width="96" height="58" rx="8"/><text class="n-label" x="90" y="390" text-anchor="middle">MySQL</text><text class="n-sub" x="90" y="408" text-anchor="middle">订单主库</text></g><g class="role-neutral"><rect class="node" x="272" y="370" width="96" height="58" rx="8"/><text class="n-label" x="320" y="390" text-anchor="middle">Redis</text><text class="n-sub" x="320" y="408" text-anchor="middle">幂等锁</text></g><g class="role-interaction"><rect class="node" x="502" y="370" width="104" height="58" rx="8"/><text class="n-label" x="554" y="390" text-anchor="middle">RocketMQ</text><text class="n-sub" x="554" y="408" text-anchor="middle">订单事件</text></g><g class="legend"><rect class="legend-box" x="486" y="462" width="138" height="48" rx="6"/><rect class="role-control" x="496" y="465" width="14" height="14" rx="3"/><text class="legend-label" x="518" y="474" text-anchor="start">控制</text><rect class="role-capability" x="561.76" y="465" width="14" height="14" rx="3"/><text class="legend-label" x="583.76" y="474" text-anchor="start">能力</text><rect class="role-interaction" x="496" y="483" width="14" height="14" rx="3"/><text class="legend-label" x="518" y="492" text-anchor="start">交互</text><rect class="role-neutral" x="561.76" y="483" width="14" height="14" rx="3"/><text class="legend-label" x="583.76" y="492" text-anchor="start">中性</text></g><text class="caption" x="324" y="549" text-anchor="middle">图 1-1 · 电商订单系统分层架构（接入 / 服务 / 存储）</text></svg>
+.role-neutral .node { fill: var(--role-neutral-fill); stroke: var(--role-neutral-stroke); }
+.frame-neutral { fill: var(--frame-neutral-fill); stroke: var(--frame-neutral-stroke); }</style><style>.edge-label-bg{fill:var(--canvas);stroke:none;}</style><defs><marker id="arrow" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path class="arrow-fill" d="M0,0 L8,4 L0,8 Z"/></marker><marker id="arrow-async" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path class="arrow-line" d="M0,0 L8,4 L0,8"/></marker><marker id="arrow-fallback" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path class="arrow-line" d="M0,0 L8,4 L0,8"/></marker></defs><text class="title" x="324" y="32" text-anchor="middle">电商订单系统分层架构</text><g><rect class="frame frame-interaction" x="24" y="56" width="600" height="94" rx="14"/><text class="frame-label" x="36" y="74">接入层</text></g><g><rect class="frame frame-control" x="24" y="204" width="600" height="94" rx="14"/><text class="frame-label" x="36" y="222">服务层</text></g><g><rect class="frame frame-capability" x="24" y="352" width="600" height="94" rx="14"/><text class="frame-label" x="36" y="370">存储层</text></g><path class="edge" d="M 165 103 L 478 103" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="287.36" y="107.5" width="69.28" height="19" rx="3"/><text class="edge-label" x="322" y="117" text-anchor="middle">token 校验</text><path class="edge" d="M 104 132 L 104 177 L 128 177 L 128 222" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="101.24" y="167.5" width="57.52" height="19" rx="3"/><text class="edge-label" x="130" y="177" text-anchor="middle">创建订单</text><path class="edge" d="M 214 251 L 230 251" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="245.24" y="241.5" width="57.52" height="19" rx="3"/><text class="edge-label" x="274" y="251" text-anchor="middle">锁定库存</text><path class="edge" d="M 128 222 L 128 208 L 512 208 L 512 222" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="291.24" y="184.5" width="57.52" height="19" rx="3"/><text class="edge-label" x="320" y="194" text-anchor="middle">发起扣款</text><path class="edge" d="M 128 280 L 128 325 L 90 325 L 90 370" marker-end="url(#arrow)"/><rect class="edge-label-bg" x="56.24" y="315.5" width="57.52" height="19" rx="3"/><text class="edge-label" x="85" y="325" text-anchor="middle">订单落库</text><path class="edge edge-dashed" d="M 128 280 L 128 325 L 320 325 L 320 370" marker-end="url(#arrow-async)"/><rect class="edge-label-bg" x="201.18" y="329.5" width="45.64" height="19" rx="3"/><text class="edge-label" x="224" y="339" text-anchor="middle">幂等锁</text><path class="edge edge-dashed" d="M 512 280 L 512 325 L 554 325 L 554 370" marker-end="url(#arrow-async)"/><rect class="edge-label-bg" x="506.36" y="315.5" width="81.28" height="19" rx="3"/><text class="edge-label" x="547" y="325" text-anchor="middle">支付成功事件</text><g class="role-interaction"><rect class="node" x="42" y="74" width="123" height="58" rx="8"/><text class="n-label" x="104" y="94" text-anchor="middle">APIGateway</text><text class="n-sub" x="104" y="112" text-anchor="middle">统一入口</text></g><g class="role-control"><rect class="node" x="478" y="74" width="128" height="58" rx="8"/><text class="n-label" x="542" y="94" text-anchor="middle">AuthService</text><text class="n-sub" x="542" y="112" text-anchor="middle">JWT 鉴权</text></g><g class="role-control"><rect class="node" x="42" y="222" width="172" height="58" rx="8"/><text class="n-label" x="128" y="242" text-anchor="middle">OrderService 订单</text><text class="n-sub" x="128" y="260" text-anchor="middle">订单编排</text></g><g class="role-capability"><rect class="node" x="230" y="222" width="171" height="58" rx="8"/><text class="n-label" x="316" y="242" text-anchor="middle">InventoryService</text><text class="n-sub" x="316" y="260" text-anchor="middle">库存扣减</text></g><g class="role-capability"><rect class="node" x="417" y="222" width="189" height="58" rx="8"/><text class="n-label" x="512" y="242" text-anchor="middle">PaymentService 支付</text><text class="n-sub" x="512" y="260" text-anchor="middle">支付网关适配</text></g><g class="role-neutral"><rect class="node" x="42" y="370" width="96" height="58" rx="8"/><text class="n-label" x="90" y="390" text-anchor="middle">MySQL</text><text class="n-sub" x="90" y="408" text-anchor="middle">订单主库</text></g><g class="role-neutral"><rect class="node" x="272" y="370" width="96" height="58" rx="8"/><text class="n-label" x="320" y="390" text-anchor="middle">Redis</text><text class="n-sub" x="320" y="408" text-anchor="middle">幂等锁</text></g><g class="role-interaction"><rect class="node" x="502" y="370" width="104" height="58" rx="8"/><text class="n-label" x="554" y="390" text-anchor="middle">RocketMQ</text><text class="n-sub" x="554" y="408" text-anchor="middle">订单事件</text></g><g class="legend"><rect class="legend-box" x="486" y="462" width="138" height="48" rx="6"/><rect class="role-control" x="496" y="465" width="14" height="14" rx="3"/><text class="legend-label" x="518" y="474" text-anchor="start">控制</text><rect class="role-capability" x="561.76" y="465" width="14" height="14" rx="3"/><text class="legend-label" x="583.76" y="474" text-anchor="start">能力</text><rect class="role-interaction" x="496" y="483" width="14" height="14" rx="3"/><text class="legend-label" x="518" y="492" text-anchor="start">交互</text><rect class="role-neutral" x="561.76" y="483" width="14" height="14" rx="3"/><text class="legend-label" x="583.76" y="492" text-anchor="start">中性</text></g><text class="caption" x="324" y="549" text-anchor="middle">图 1-1 · 电商订单系统分层架构（接入 / 服务 / 存储）</text></svg>

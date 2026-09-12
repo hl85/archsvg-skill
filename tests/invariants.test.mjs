@@ -10,7 +10,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
-import { TYPE_SCALE, BOX, EDGE_LABEL, EDGE_MASK_HEIGHT } from '../lib/typography.mjs';
+import { TYPE_SCALE, BOX, EDGE_LABEL, EDGE_MASK_HEIGHT, FRAME } from '../lib/typography.mjs';
 import { STROKE } from '../lib/typography.mjs';
 import { ARROW_MARKER_IDS, MARKER_SHAPES, EDGE_STYLE, collectUrlRefs, collectIds } from '../lib/markers.mjs';
 import { ROLE_KEYS, styleBlock } from '../lib/theme.mjs';
@@ -61,6 +61,17 @@ export const cases = [
       if (!(BOX.heightDouble > BOX.heightSingle)) throw new Error('双行盒必须高于单行盒');
       if (BOX.lineHeight <= 0) throw new Error('lineHeight 必须为正');
       return `盒宽 ${BOX.minWidth}–${BOX.maxWidth}，内宽 ${BOX.maxWidth - 2 * BOX.padX}，行高 ${BOX.lineHeight}`;
+    },
+  },
+  {
+    name: '圆角梯度：外层组框圆角 > 内层节点圆角',
+    run() {
+      // 读实际导出值比较，不写死数字：容器比节点更「钝」才有由外到内的层次。
+      // 两者相等或反向会在视觉上让组框与节点融成一片（尤其组框已着域色后）。
+      if (!(FRAME.radius > BOX.radius)) {
+        throw new Error(`FRAME.radius(${FRAME.radius}) 必须 > BOX.radius(${BOX.radius})`);
+      }
+      return `FRAME.radius ${FRAME.radius} > BOX.radius ${BOX.radius}`;
     },
   },
   {
