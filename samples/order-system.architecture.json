@@ -8,7 +8,11 @@
     "viewBox": [
       900,
       500
-    ]
+    ],
+    "roleBudget": {
+      "reason": "三层架构叠加存储层中性基础设施；neutral 表『非业务域』，压缩会丢掉分层语义",
+      "roles": ["capability", "control", "interaction", "neutral"]
+    }
   },
   "groups": [
     {

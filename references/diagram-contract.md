@@ -1,6 +1,6 @@
 # archsvg 诊断与回执契约
 
-Diagnostic 对象、Check 对象、20 项检查逐项说明、退出码表、回执 JSON schema。
+Diagnostic 对象、Check 对象、25 项检查逐项说明、退出码表、回执 JSON schema。
 
 ---
 
@@ -48,9 +48,9 @@ schema 层（`validateSchema`）产出的诊断。携带 `subject` / `evidence` 
 
 ---
 
-## 3. 20 项检查逐项说明
+## 3. 25 项检查逐项说明
 
-构图 11 项（10 项复用 archify `geometry.mjs` 几何内核 + 1 项文案不变量）+ 文档集成专项 9 项。
+构图 11 项（10 项复用 archify `geometry.mjs` 几何内核 + 1 项文案不变量）+ 文档集成专项 14 项。
 
 > 名清单的**唯一出处**是 `COMPOSITION_CHECK_NAMES` / `DOCUMENT_CHECK_NAMES` / `STANDARD_DOCUMENT_CHECK_NAMES`
 > （分别在两个 checks 模块里导出）。`archsvg doctor` 会断言本节各项数与代码一致。
@@ -71,7 +71,7 @@ schema 层（`validateSchema`）产出的诊断。携带 `subject` / `evidence` 
 | `route_rhythm` | 边转折节奏合理（无 <16px / <8px 过短段） | 路由抖动 | 删冗余边、加分组 |
 | `legend_clearance` | 图例不压任何 box/容器（gap≥8px） | 图例压节点 | 减节点或调 viewBox |
 
-### 3.2 文档集成专项 9 项
+### 3.2 文档集成专项 14 项
 
 | 名称 | 检查什么 | 失败意味着 | 典型修法 |
 |:---|:---|:---|:---|
@@ -84,14 +84,19 @@ schema 层（`validateSchema`）产出的诊断。携带 `subject` / `evidence` 
 | `caption_present` | `meta.caption` 形如 `图 X-N · 标题` 且图号不重复 | 图题缺失/格式错/图号重复 | 补 `meta.caption`；跨文件去重 |
 | `theme_readable` | 用到的 role 在明/暗两套 token 下文字对比度 ≥ 4.5:1 | 配色对比度不足 | 回查 `role` 选用与 token |
 | `variant_parity` | 多版本目录的 `images/*.svg` 文件名集合一致（仅 `--variant-pair` 启用） | 版本间图不对齐 | 对齐各版本图文件 |
+| `svg_a11y` | 根 `<svg>` 具 `role="img"`，且 `<title>` / `<desc>` 是根元素的**首两个子元素** | 读屏软件只看到无标题图形（文档平台图片可访问性丢失） | 检查 `lib/render.mjs` 根标签那一行与首两子元素顺序 |
+| `svg_hygiene` | 产物无 `<!--` 注释 / `linearGradient`·`radialGradient` / `<filter>` / `drop-shadow`·`blur` | 引入了扁平静态风格之外的装饰（注释残留、渐变、滤镜） | 移除对应元素；改样式时勿加渐变/阴影 |
+| `weight_whitelist` | 产物实际声明的 `font-weight` 全部 ∈ 白名单 `{400, 700}` | 出现第三档字重，视觉层级漂移 | 回查 `lib/theme.mjs` 的 CSS 生成，只允许 400 / 700 |
+| `role_budget` | 图中用到的 role 集合 ≤ 3；超过则 `meta.roleBudget` 须有 ≥ 8 字理由且 `roles` 清单覆盖全部实际 role | 语义域膨胀（配色失去区分度）；或声明与实际漂移（漏列 role） | 补 `meta.roleBudget`（reason + 显式 roles），或按下限收敛 role |
+| `min_font_size` | **产物级**：节点标题（16px）与组框标签（13px）按 700px 展示时分别 ≥ 11px / ≥ 10px（画布宽上限 = 700 × 字号 / 下限） | 画布过宽，缩到正文宽后文字不可读 | 按语义拆带收窄画布，**不是缩字号** |
 
 > `ref_reachable` 查的是 **Markdown 里的图片引用**；SVG **内部**的 `url(#id)` 引用可达性由
 > `marker_contract` 负责。两者不同，勿混淆。
 
 ### 3.3 档位 → 检查项数
 
-- `standard`：11 构图 + `no_ascii` + `no_base64` + `marker_contract` + `ref_reachable` = **15 项**
-- `showcase`：20 项**全过**
+- `standard`：11 构图 + `no_ascii` + `no_base64` + `marker_contract` + `ref_reachable` + `svg_a11y` + `svg_hygiene` = **17 项**
+- `showcase`：25 项**全过**
 
 > **validate 与 render 跑的是同一批检查**：validate 也会先在内存里渲染一份产物，
 > 故「validate 通过」即等价于「render 会通过」。历史上 validate 不渲染，
@@ -147,7 +152,7 @@ schema 层（`validateSchema`）产出的诊断。携带 `subject` / `evidence` 
   "composition": {
     "profile": "showcase",
     "status": "pass",
-    "summary": { "total": 20, "passed": 20, "failed": 0 }
+    "summary": { "total": 25, "passed": 25, "failed": 0 }
   },
   "artifact": { "bytes": 7809, "sha256": "2b00a5ee..." }
 }

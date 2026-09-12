@@ -5,7 +5,11 @@
     "title": "同步阻塞 vs 事件驱动的下单链路",
     "caption": "图 1-2 · 下单链路对比：同步阻塞 vs 事件驱动（并列对比变体）",
     "locale": "zh-CN",
-    "viewBox": [1100, 520]
+    "viewBox": [1100, 520],
+    "roleBudget": {
+      "reason": "并列对比图两侧链路之外，warn 标注阻塞失败路径、neutral 为公共基础设施，五域承担对照语义",
+      "roles": ["capability", "control", "interaction", "neutral", "warn"]
+    }
   },
   "groups": [
     { "id": "sync-path", "label": "同步链路 · 受理即串行执行", "role": "interaction" },
