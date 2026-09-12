@@ -50,7 +50,7 @@ schema 层（`validateSchema`）产出的诊断。携带 `subject` / `evidence` 
 
 ## 3. 25 项检查逐项说明
 
-构图 11 项（10 项复用 archify `geometry.mjs` 几何内核 + 1 项文案不变量）+ 文档集成专项 14 项。
+构图 11 项（8 项复用自研几何内核 `lib/geometry.mjs`，3 项为自研不变量）+ 文档集成专项 14 项。
 
 > 名清单的**唯一出处**是 `COMPOSITION_CHECK_NAMES` / `DOCUMENT_CHECK_NAMES` / `STANDARD_DOCUMENT_CHECK_NAMES`
 > （分别在两个 checks 模块里导出）。`archsvg doctor` 会断言本节各项数与代码一致。
