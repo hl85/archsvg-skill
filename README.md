@@ -28,7 +28,7 @@ SVG 是**纯文本**，所以它天然对 LLM 友好（能读、能写、能改�
 | 一次性输出 | 画错没有诊断，只能整体重来 |
 | 风格漂移 | 每次生成一个样，跨文档、跨仓库都不一致 |
 
-archsvg 的做法是**让模型输出结构，而不是输出像素**，并在出图前**做 26 项机械检查**：
+archsvg 的做法是**让模型输出结构，而不是输出像素**，并在出图前**做 27 项机械检查**：
 
 ```
 自然语言 / 代码 / 文档片段
@@ -263,7 +263,7 @@ archsvg render   <type> <input.json> <output.svg> [--quality standard|showcase] 
 ```
 
 - `<type>` ∈ `architecture` | `flow` | `sequence`
-- `--quality`：`standard` 18 项 / `showcase` 26 项（默认 `standard`）
+- `--quality`：`standard` 19 项 / `showcase` 27 项（默认 `standard`）
 - `--json`：输出机器可读回执，含 `checks`、`composition.summary`、`artifact.sha256`
 - `validate` 与 `render` **跑同一批检查**（都会先渲染一份产物），故"validate 通过"等价于"render 会通过"
 
@@ -280,7 +280,7 @@ archsvg render   <type> <input.json> <output.svg> [--quality standard|showcase] 
 **构图检查 12 项** —— 坐标有限性、**声明实体覆盖**、节点重叠、文字锚点在盒内、文案截断、连线穿越无关节点、标签净空、
 端点正交、走廊歧义、贴边借道、转折节奏、图例净空。
 
-**文档集成检查 14 项** —— ASCII 画图残留、base64 内嵌、文字描边污染、箭头 marker 契约、产物文字适配、
+**文档集成检查 15 项** —— ASCII 画图残留、base64 内嵌、文字描边污染、箭头 marker 契约、产物文字适配、**内容不越出画布**、
 Markdown 引用可达、图题规范、明暗双模对比度、多版本目录图资源一致性、无障碍（`role="img"` + `title`/`desc`）、
 产物卫生（无注释/渐变/滤镜）、字重白名单、语义域预算、展示字号下限。
 
@@ -338,7 +338,7 @@ archsvg/
 │   ├── schema.mjs               # 运行时 schema 校验（JSON Schema 子集）
 │   └── checks/
 │       ├── composition.mjs      # 构图检查 12 项
-│       └── document.mjs         # 文档集成检查 14 项
+│       └── document.mjs         # 文档集成检查 15 项
 ├── schemas/{common,architecture,flow,sequence}.schema.json
 ├── tests/                       # 零依赖测试（archsvg test）
 │   ├── geometry-parity.test.mjs #   几何行为基线差分测试（1278 条，判据来源）
@@ -349,7 +349,7 @@ archsvg/
 └── references/
     ├── design-system.md         # 固定风格约定 + fewshot（域→role 配色、文案规范、自检）
     ├── diagram-spec.md          # IR 规范、role 语义、布局规则、修复优先级
-    └── diagram-contract.md      # 诊断 / 回执契约、26 项检查逐项说明
+    └── diagram-contract.md      # 诊断 / 回执契约、27 项检查逐项说明
 ```
 
 ---
@@ -402,6 +402,7 @@ node tests/verify-rendered-svg.tool.mjs
 
 | 版本 | 变化 |
 |:---|:---|
+| **v0.1.7** | 画布边界计入**文本自身尺寸**（修「居中文字被切」）+ 新增 `content_within_canvas` 检查（26 → 27 项） |
 | **v0.1.6** | 新增构图检查 `entity_coverage`（25 → 26 项）：堵住「IR 声明了、产物里却没有」的**静默丢弃** |
 | **v0.1.5** | 去掉 vendored 的第三方几何内核，改为自研（本 skill 自此不含任何第三方代码）；行为由 1278 条冻结基线锁定 |
 | **v0.1.4** | 新增 5 项文档侧检查（20 → 25 项）；「画幅体检」从人工判据变为可断言契约 |
@@ -410,6 +411,33 @@ node tests/verify-rendered-svg.tool.mjs
 | **v0.1.0** | 首个版本：IR JSON → 自动布局 → 静态 SVG，三类型 + 机械验证 |
 
 ### 详细条目
+
+#### v0.1.7 —— 画布边界计入文本尺寸 + `content_within_canvas`（26 → 27 项）
+
+**缺陷**：画布边界只由「几何元素 + 边标签的**锚点**」决定，**文本自身的尺寸不参与**：
+
+- `meta.caption` 宽度完全不参与画布宽（`render.mjs` 只把它的**高度**算进 `H`）
+- 边标签只累加 `labelAt` 这个点，不含标签矩形的宽高
+
+实测两处**真溢出，且通过全部 26 项检查**：
+
+| 场景 | 越界量 |
+|:---|:---|
+| 58 字图注（画布 319 宽） | **左右各 121px** |
+| 16 字边标签（画布 369 宽） | **右侧 76px** |
+
+**修复**（两处）：
+- `lib/render.mjs` 新增 `fitCanvasToCenteredText()`：标题/图注宽度计入画布宽；变宽后把内容整体右移，
+  使内容中线与居中文字对齐（否则内容左贴、文字居中，看起来错位）
+- `lib/layout.mjs` 的 `finalize()`：边标签按**矩形**而非锚点累加边界
+
+**新增检查** `content_within_canvas`（standard 档）：产物级断言所有 `rect` / `text` 都落在画布内。
+不复刻渲染器，用与布局同一套 `estimateTextWidth` 估算文本宽；容差取 **1px**（画布宽度用的就是同一套估算，
+不该放宽；「估算是否与真实字体相符」由 `tests/verify-rendered-svg.tool.mjs` 用浏览器 `getBBox()` 实测）。
+
+**验收**：两处缺陷修复后越界归零（画布 319→616、369→468）；5 个样例渲染**逐字节不变**
+（修复前就测得它们的标签距边界尚有 36~272px 余量，即「只改坏的、不动好的」）；
+负向用例构造「画布装不下居中文字」并断言报错。档位 → `standard` 19 / `showcase` 27。
 
 #### v0.1.6 —— 新增 `entity_coverage`，堵住静默丢弃（25 → 26 项）
 

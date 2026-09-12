@@ -4,7 +4,7 @@
 // 因此这里为每项检查构造**必定违规**的输入，断言它确实报错，并断言同类正常输入通过。
 //
 // 测试对象：entity_coverage、text_not_truncated（构图）/ marker_contract、svg_text_fits、svg_a11y、
-// svg_hygiene、weight_whitelist、role_budget、min_font_size（文档，产物级 / IR 级）。
+// svg_hygiene、weight_whitelist、role_budget、min_font_size、content_within_canvas（文档，产物级 / IR 级）。
 
 import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -282,6 +282,31 @@ export const cases = [
         checks.push('sequence');
       }
       return `${checks.join(' / ')} 三种类型下的悬空端点边均被拦下`;
+    },
+  },
+  {
+    name: 'content_within_canvas：比内容更宽的居中文字必须被拦下',
+    run() {
+      const ir = readSample('order-system.architecture.json');
+      const lrWidth = layout(ir).width;
+      // 造一份「图注远宽于内容」的 IR，再**把画布宽改回不含图注宽度的 lrWidth**
+      // —— 这正是修复前的几何：内容按 lrWidth 摆，而图注居中在新（更宽的）画布上，
+      //    于是它必然越界。修复后渲染器会把图注宽度计入画布，故这里手工复现旧态。
+      const orig = ir.meta.caption;
+      ir.meta.caption = '图 1-1 · 一条刻意写得非常长的图注，用来验证画布宽度是否把居中文字自身的宽度算了进去（修复前会被左右各切一半）';
+      const rendered = renderSvg(ir);
+      const shrunk = rendered.replace(/viewBox="0 0 [\d.]+ ([\d.]+)"/, `viewBox="0 0 ${lrWidth} $1"`);
+      if (shrunk === rendered) throw new Error('viewBox 替换未生效，测试骨架已变');
+      const c = runDoc(writeTmp('caption-overflow.svg', shrunk)).get('content_within_canvas');
+      if (c.ok) throw new Error('超宽图注未被拦下');
+      if (!/caption/.test(c.details.join('')) || !/越出画布/.test(c.details.join(''))) {
+        throw new Error(`报错未指明越界元素与方向：${c.details[0]}`);
+      }
+      // 同一张图，画布宽度正常时（修复后的渲染结果）必须通过
+      const good = runDoc(writeTmp('caption-ok.svg', rendered)).get('content_within_canvas');
+      if (!good.ok) throw new Error(`修复后的产物被误判：${good.details[0]}`);
+      ir.meta.caption = orig;
+      return `画布 ${lrWidth}px 时装不下图注 → 拦下；修复后的 ${layout(ir).width}px 版本通过`;
     },
   },
 ];
