@@ -59,7 +59,7 @@ agent_created: true
 ```bash
 archsvg doctor                                              # 环境自检（含文档↔代码常量一致性），全绿打印 "archsvg is ready."
 archsvg test                                                # 跑 tests/*.test.mjs（零依赖，改度量/常量后必跑）
-archsvg guide "<场景>"                                      # 推荐图类型 + 理由 + 最简 IR 骨架
+archsvg guide "<场景>"                                      # 分型路由：先判「是否该回流（别用本管线）」并给替代方案，再按命中词打分推荐类型（并列时报歧义），并附该类型最小必读规则与最简 IR 骨架
 archsvg validate <type> <input.json> [--quality standard|showcase] [--json]
 archsvg render   <type> <input.json> <output.svg> [--quality standard|showcase] [--json]
 ```

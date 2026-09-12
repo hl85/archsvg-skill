@@ -14,6 +14,10 @@ import path from 'node:path';
 import os from 'node:os';
 import { createHash } from 'node:crypto';
 
+import {
+  TYPE_RULES, recommendType, rerouteFor, ambiguityHint,
+} from './guide-routing.mjs';
+
 // ---- 路径解析（仅依赖 import.meta.url，与 cwd 无关）----
 const BIN_URL = import.meta.url;
 const SKILL_ROOT = path.dirname(path.dirname(fileURLToPath(BIN_URL)));
@@ -423,13 +427,10 @@ async function cmdRender(args) {
 }
 
 // =====================================================================
-// 命令：guide
+// 命令：guide（分型路由）
 // =====================================================================
-const SCENE_KEYWORDS = {
-  sequence: ['时序', '调用链', '请求', '生命周期', '交互'],
-  flow: ['流程', '步骤', '管道', 'pipeline', '决策', '审批', '演进', '状态流转'],
-  architecture: ['架构', '分层', '组件', '拓扑', '对比'],
-};
+// 判据（负向回流表 / 正向打分 / 类型规则子集）都在 `bin/guide-routing.mjs`，
+// 独立成模块以便 tests/guide-routing.test.mjs 直接 import 而不触发本 CLI 的 top-level await。
 const SKELETONS = {
   architecture: `{
   "schema_version": 1,
@@ -470,14 +471,6 @@ const SKELETONS = {
 }`,
 };
 
-function recommendType(scene) {
-  const lower = String(scene).toLowerCase();
-  for (const t of ['sequence', 'flow', 'architecture']) {
-    if (SCENE_KEYWORDS[t].some((k) => lower.includes(k.toLowerCase()))) return t;
-  }
-  return 'architecture';
-}
-
 const REASON = {
   architecture: '涉及分层 / 组件 / 边界 / 对比关系，用架构图最清晰',
   flow: '涉及步骤 / 管道 / 决策 / 状态流转，用流程图描述执行顺序',
@@ -489,11 +482,42 @@ function cmdGuide(args) {
   if (!scene) {
     throw new UsageError('用法：archsvg guide "<场景描述>"');
   }
-  const type = recommendType(scene);
-  console.log(`推荐图类型：${type}`);
-  console.log(`理由：${REASON[type]}`);
+
+  // 1) 负向优先：命中回流表就不硬推荐图类型。
+  const reroute = rerouteFor(scene);
+  if (reroute.rule) {
+    console.log('建议不要用本管线（回流）');
+    console.log(`回流到：${reroute.rule.target}`);
+    console.log(`理由：${reroute.rule.reason}`);
+    console.log(`替代方案：${reroute.rule.alternative}`);
+    if (reroute.matched.length > 1) {
+      console.log(`另命中回流场景：${reroute.matched.slice(1).map((r) => r.target).join('；')}`);
+    }
+    return 0;
+  }
+
+  // 2) 正向：打分制推荐
+  const rec = recommendType(scene);
+  console.log(`推荐图类型：${rec.type}${rec.ambiguous ? '（有歧义，见下）' : ''}`);
+  console.log(`理由：${REASON[rec.type]}`);
+  if (rec.fallback) {
+    console.log('命中关键词：（无）——未命中任何场景关键词，按兜底规则给 architecture');
+  } else {
+    console.log(`命中关键词：${rec.matched[rec.type].join('、')}`);
+  }
+  if (rec.ambiguous) {
+    console.log('⚠ 歧义提示：以下类型并列最高分，无法唯一判定：');
+    for (const t of rec.winners) {
+      console.log(`  - ${t}：命中 ${rec.matched[t].join('、')}（${rec.scores[t]} 分）`);
+    }
+    console.log(`二选一的判断依据：${ambiguityHint(rec.winners)}`);
+  }
+
+  const rules = TYPE_RULES[rec.type];
+  console.log(`\n该类型最小必读规则（${rules.length} 条）：`);
+  rules.forEach((r, i) => console.log(`  ${i + 1}. ${r}`));
   console.log('\n最简 IR 骨架：');
-  console.log(SKELETONS[type]);
+  console.log(SKELETONS[rec.type]);
   return 0;
 }
 
@@ -668,9 +692,13 @@ async function checkDocsConsistency() {
     }
   }
   expectNum(problems, 'README.md「做 N 项机械检查」', num(readme, /做\s*(\d+)\s*项机械检查/), totalN);
+  // 「构图检查 N 项」「文档集成检查 N 项」是README 的两张分项清单，此前未被断言覆盖，
+  // 已实际漂移过；这里分别与 COMPOSITION_CHECK_NAMES / DOCUMENT_CHECK_NAMES 比对锁死。
+  expectNum(problems, 'README.md「构图检查 N 项」', num(readme, /\*\*构图检查\s*(\d+)\s*项\*\*/), compN);
+  expectNum(problems, 'README.md「文档集成检查 N 项」', num(readme, /\*\*文档集成检查\s*(\d+)\s*项\*\*/), docN);
 
   if (problems.length) throw new Error(problems.join('；'));
-  return `字级/线宽 7 项、档位项数 6 处、README 口径 3 处均与代码一致（构图 ${compN} + 文档 ${docN}；standard ${standardN} / showcase ${totalN}）`;
+  return `字级/线宽 7 项、档位项数 6 处、README 口径 5 处均与代码一致（构图 ${compN} + 文档 ${docN}；standard ${standardN} / showcase ${totalN}）`;
 }
 
 async function cmdDoctor() {
@@ -783,7 +811,7 @@ function printUsage() {
 用法：
   archsvg doctor                                            环境自检（含文档↔代码常量一致性）
   archsvg test   [--json]                                   跑 tests/*.test.mjs（零依赖）
-  archsvg guide "<场景>"                                    推荐图类型
+  archsvg guide "<场景>"                                    分型路由：回流优先 + 打分推荐
   archsvg validate <type> <input.json> [--quality standard|showcase] [--variant-pair <dir>] [--json]
   archsvg render   <type> <input.json> <output.svg> [--quality standard|showcase] [--variant-pair <dir>] [--json]
 
