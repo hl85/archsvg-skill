@@ -3,7 +3,8 @@
 // 只断言「好输入通过」是不够的 —— 一个恒为 ok 的检查也能让所有样例变绿。
 // 因此这里为每项检查构造**必定违规**的输入，断言它确实报错，并断言同类正常输入通过。
 //
-// 测试对象：text_not_truncated（构图）/ marker_contract、svg_text_fits（文档，产物级）。
+// 测试对象：text_not_truncated（构图）/ marker_contract、svg_text_fits、svg_a11y、svg_hygiene、
+// weight_whitelist、role_budget、min_font_size（文档，产物级 / IR 级）。
 
 import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -127,6 +128,103 @@ export const cases = [
       const c = runDoc(writeTmp('shortmask.svg', bad)).get('svg_text_fits');
       if (c.ok) throw new Error('遮罩过矮未被拦下');
       return `遮罩高 ${m[1]} → 10 被拦下`;
+    },
+  },
+  {
+    name: 'svg_a11y：缺 role="img" 或 title/desc 顺序错误必须被拦下',
+    run() {
+      const bad = GOOD_SVG.replace(' role="img"', '');
+      if (bad === GOOD_SVG) throw new Error('替换未生效，测试骨架已变（根 <svg> 已无 role="img"？）');
+      const c = runDoc(writeTmp('no-role.svg', bad)).get('svg_a11y');
+      if (c.ok) throw new Error('缺 role="img" 未被拦下');
+      if (!/role="img"/.test(c.details.join(''))) throw new Error(`报错信息未指明 role：${c.details[0]}`);
+      // ② title / desc 顺序被破坏
+      const swapped = GOOD_SVG.replace(
+        /<title>([\s\S]*?)<\/title><desc>([\s\S]*?)<\/desc>/,
+        '<desc>$2</desc><title>$1</title>'
+      );
+      if (swapped === GOOD_SVG) throw new Error('title/desc 交换未生效，测试骨架已变');
+      const c2 = runDoc(writeTmp('swapped.svg', swapped)).get('svg_a11y');
+      if (c2.ok) throw new Error('title / desc 顺序错误未被拦下');
+      const good = runDoc(writeTmp('a11y-good.svg', GOOD_SVG)).get('svg_a11y');
+      if (!good.ok) throw new Error(`正常产物被误判：${good.details[0]}`);
+      return '缺 role 被拦、title/desc 顺序错误被拦，正常产物通过';
+    },
+  },
+  {
+    name: 'svg_hygiene：注释 / 渐变 / filter 必须被拦下',
+    run() {
+      const withComment = GOOD_SVG.replace('<style>', '<!-- generated --><style>');
+      if (withComment === GOOD_SVG) throw new Error('注释注入未生效，测试骨架已变');
+      const c1 = runDoc(writeTmp('comment.svg', withComment)).get('svg_hygiene');
+      if (c1.ok) throw new Error('注释残留未被拦下');
+      const withGrad = GOOD_SVG.replace('<defs>', '<defs><linearGradient id="g1"></linearGradient>');
+      const c2 = runDoc(writeTmp('grad.svg', withGrad)).get('svg_hygiene');
+      if (c2.ok) throw new Error('渐变定义未被拦下');
+      const withFilter = GOOD_SVG.replace('<defs>', '<defs><filter id="f1"></filter>');
+      const c3 = runDoc(writeTmp('filter.svg', withFilter)).get('svg_hygiene');
+      if (c3.ok) throw new Error('<filter> 未被拦下');
+      const good = runDoc(writeTmp('hygiene-good.svg', GOOD_SVG)).get('svg_hygiene');
+      if (!good.ok) throw new Error(`正常产物被误判：${good.details[0]}`);
+      return '注释 / 渐变 / filter 均被拦，正常产物通过';
+    },
+  },
+  {
+    name: 'weight_whitelist：白名单外字重必须被拦下',
+    run() {
+      const bad = GOOD_SVG.replace('font-weight: 700', 'font-weight: 600');
+      if (bad === GOOD_SVG) throw new Error('替换未生效，测试骨架已变');
+      const c = runDoc(writeTmp('weight.svg', bad)).get('weight_whitelist');
+      if (c.ok) throw new Error('白名单外字重未被拦下');
+      if (!/600/.test(c.details.join(''))) throw new Error(`报错信息未指明字重：${c.details[0]}`);
+      const good = runDoc(writeTmp('weight-good.svg', GOOD_SVG)).get('weight_whitelist');
+      if (!good.ok) throw new Error(`正常产物被误判：${good.details[0]}`);
+      return '字重 600 被拦下，正常产物通过';
+    },
+  },
+  {
+    name: 'role_budget：> 3 个 role 未声明或声明漏项必须被拦下',
+    run() {
+      const run = (ir) => runDocumentChecks({ ir, svgPath: null, docDir: null, options: {} })
+        .find((c) => c.name === 'role_budget');
+      const base = readSample('order-system.architecture.json'); // 4 个 role + 已声明
+      const declared = run(base);
+      if (!declared.ok) throw new Error(`带声明的样例被误判：${declared.details[0]}`);
+      // ① 删除声明 → 失败
+      const noDecl = JSON.parse(JSON.stringify(base));
+      delete noDecl.meta.roleBudget;
+      const c1 = run(noDecl);
+      if (c1.ok) throw new Error('缺 meta.roleBudget 未被拦下');
+      if (!/roleBudget/.test(c1.details.join(''))) throw new Error(`报错未指明 roleBudget：${c1.details[0]}`);
+      // ② 声明漏掉一个 role → 失败
+      const partial = JSON.parse(JSON.stringify(base));
+      partial.meta.roleBudget.roles = ['capability', 'control', 'interaction', 'warn'];
+      const c2 = run(partial);
+      if (c2.ok) throw new Error('声明漏列 role 未被拦下');
+      if (!/neutral/.test(c2.details.join(''))) throw new Error(`报错未列出缺失 role：${c2.details[0]}`);
+      // ③ ≤ 3 个 role 免声明
+      const small = {
+        meta: { title: 'x' },
+        nodes: [{ id: 'a', role: 'control' }, { id: 'b', role: 'capability' }, { id: 'c', role: 'interaction' }],
+      };
+      const c3 = run(small);
+      if (!c3.ok) throw new Error(`≤ 3 个 role 被误判：${c3.details[0]}`);
+      return '缺声明被拦、漏列 role 被拦，≤3 role 免声明通过';
+    },
+  },
+  {
+    name: 'min_font_size：画布过宽导致展示字号不足必须被拦下',
+    run() {
+      const m = GOOD_SVG.match(/<svg[^>]*viewBox="0 0 ([0-9.]+) /);
+      if (!m) throw new Error('未找到根 viewBox，测试骨架已变');
+      const wide = GOOD_SVG.replace(m[0], m[0].replace(`viewBox="0 0 ${m[1]} `, 'viewBox="0 0 2000 '));
+      if (wide === GOOD_SVG) throw new Error('画布加宽替换未生效');
+      const c = runDoc(writeTmp('widefont.svg', wide)).get('min_font_size');
+      if (c.ok) throw new Error('画布过宽未被拦下');
+      if (!/下限/.test(c.details.join(''))) throw new Error(`报错信息未指明下限：${c.details[0]}`);
+      const good = runDoc(writeTmp('fontsize-good.svg', GOOD_SVG)).get('min_font_size');
+      if (!good.ok) throw new Error(`正常产物被误判：${good.details[0]}`);
+      return `画布宽 ${m[1]} → 2000 被拦下，正常产物通过`;
     },
   },
 ];

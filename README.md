@@ -3,7 +3,7 @@
 > 给开发者的专业图形生成管线：**IR JSON → 机械验证 → 静态 SVG**。
 
 archsvg 让你用一份描述图结构的 JSON（IR，Intermediate Representation）表达架构图、流程图、
-时序图，由它负责自动布局与渲染，并在出图前做 20 项机械检查。产出是**单文件静态 SVG**，
+时序图，由它负责自动布局与渲染，并在出图前做 25 项机械检查。产出是**单文件静态 SVG**，
 可直接嵌入 Markdown、文档系统或代码仓库。
 
 ## 它解决什么问题
@@ -25,7 +25,7 @@ archsvg 的做法是**让模型输出结构，而不是输出像素**：
       ↓
   Schema 校验           ← 字段合法性
       ↓
-  机械检查（20 项）     ← 标签遮挡、连线穿越、走廊歧义、对比度、文字描边、箭头契约…
+  机械检查（25 项）     ← 标签遮挡、连线穿越、走廊歧义、对比度、文字描边、箭头契约…
       ↓
   渲染静态 SVG
 ```
@@ -102,7 +102,7 @@ archsvg render   <type> <input.json> <output.svg> [--quality standard|showcase] 
 ```
 
 - `<type>` ∈ `architecture` | `flow` | `sequence`
-- `--quality`：`standard` 15 项 / `showcase` 20 项（默认 `standard`）
+- `--quality`：`standard` 17 项 / `showcase` 25 项（默认 `standard`）
 - `--json`：输出机器可读回执，含 `checks`、`composition.summary`、`artifact.sha256`
 
 退出码：
@@ -115,11 +115,12 @@ archsvg render   <type> <input.json> <output.svg> [--quality standard|showcase] 
 
 ## 质量门禁
 
-**构图检查 10 项** —— 坐标有限性、节点重叠、文字锚点在盒内、连线穿越无关节点、标签净空、
+**构图检查 11 项** —— 坐标有限性、节点重叠、文字锚点在盒内、文案截断、连线穿越无关节点、标签净空、
 端点正交、走廊歧义、贴边借道、转折节奏、图例净空。
 
-**文档集成检查 6 项** —— ASCII 画图残留、base64 内嵌、Markdown 引用可达、
-图题规范、明暗双模对比度、多版本目录图资源一致性。
+**文档集成检查 14 项** —— ASCII 画图残留、base64 内嵌、文字描边污染、箭头 marker 契约、产物文字适配、
+Markdown 引用可达、图题规范、明暗双模对比度、多版本目录图资源一致性、无障碍（`role="img"` + `title`/`desc`）、
+产物卫生（无注释/渐变/滤镜）、字重白名单、语义域预算、展示字号下限。
 
 有界重试：连续两轮修复未降低错误数即**停止并如实报告**未解决诊断。
 禁止以裁剪内容、缩小字号、隐藏溢出等手段伪造通过。
@@ -154,14 +155,14 @@ archsvg/
 │   ├── schema.mjs               # 运行时 schema 校验（JSON Schema 子集）
 │   └── checks/
 │       ├── composition.mjs      # 构图检查 11 项
-│       └── document.mjs         # 文档集成检查 9 项
+│       └── document.mjs         # 文档集成检查 14 项
 ├── schemas/{common,architecture,flow,sequence}.schema.json
 ├── examples/                    # 各类型最小示例 IR（Schema 对照用）
 ├── samples/                     # 成品样例画廊（IR + 已渲染 SVG，覆盖全部类型与变体）
 └── references/
     ├── design-system.md         # 固定风格约定 + fewshot（域→role 配色、文案规范、自检）
     ├── diagram-spec.md          # IR 规范、role 语义、布局规则、修复优先级
-    └── diagram-contract.md      # 诊断 / 回执契约、20 项检查逐项说明
+    └── diagram-contract.md      # 诊断 / 回执契约、25 项检查逐项说明
 ```
 
 ## 运行时要求
@@ -193,6 +194,18 @@ archsvg 自身以 MIT 发布。
 写入 stderr 并退出。archsvg 自研模块不依赖该变量，仅保留语义以兼容上游代码。
 
 ## 版本
+
+**v0.1.4** —— 新增 5 项文档侧检查（20 → 25 项），并把「画幅体检」从人工判据变成可断言契约：
+
+- 新增 `svg_a11y`（standard）：根 `<svg>` 必须带 `role="img"`，且 `<title>` / `<desc>` 为首两个子元素
+  （`lib/render.mjs` 根标签同步补上 `role="img"`；检查当日即生效）。
+- 新增 `svg_hygiene`（standard）：产物不得含注释 / 渐变 / `<filter>` / `drop-shadow`·`blur`（回归护栏）。
+- 新增 `weight_whitelist`（showcase）：产物实际字重必须 ∈ `{400, 700}`（白名单常量在 `lib/typography.mjs`，回归护栏）。
+- 新增 `role_budget`（showcase）：用到的 role > 3 时须在 `meta.roleBudget` 给出理由并**显式列出** role 清单，
+  防止语义域膨胀与「声明 ↔ 实际」漂移；4 个多域样例已补声明。
+- 新增 `min_font_size`（showcase）：按「字级下限表」断言节点标题 ≥ 11px、组框标签 ≥ 10px
+  （按 700px 展示折算；画布宽上限 = 700 × 字号 / 下限），把画幅体检固化为检查项。
+- 5 项均配负向用例（构造违规输入 → 断言报错 → 断言正常输入通过）。
 
 **v0.1.3** —— 常量单点化与「估算 / 渲染 / 校验」三方拉齐：
 

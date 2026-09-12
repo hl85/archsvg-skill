@@ -5,7 +5,11 @@
     "title": "CI 发布流水线",
     "caption": "图 2-1 · CI 发布流水线（提交 → 构建 → 验证 → 发布）",
     "locale": "zh-CN",
-    "viewBox": [1000, 480]
+    "viewBox": [1000, 480],
+    "roleBudget": {
+      "reason": "流水线含能力域构建、控制域编排、interaction 制品契约、warn 拦截与 neutral 基础设施，五域对应真实角色分工",
+      "roles": ["capability", "control", "interaction", "neutral", "warn"]
+    }
   },
   "stages": [
     { "id": "commit", "label": "提交", "role": "neutral" },

@@ -20,7 +20,7 @@
       "pattern": "^[a-z][a-z0-9-]{0,39}$"
     },
     "meta": {
-      "description": "图的元信息块（全类型共用）。title 必填；caption 为图号与实测口径；locale 默认 zh-CN；viewBox 默认 [800,500]。",
+      "description": "图的元信息块（全类型共用）。title 必填；caption 为图号与实测口径；locale 默认 zh-CN；viewBox 默认 [800,500]。roleBudget 为语义域预算豁免：当一张图用到 > 3 个 role 时，必须给出理由并显式列出全部 role（见 `role_budget` 检查）。",
       "type": "object",
       "additionalProperties": false,
       "required": ["title"],
@@ -46,6 +46,16 @@
           "maxItems": 2,
           "items": { "type": "number", "minimum": 320, "maximum": 2000 },
           "default": [800, 500]
+        },
+        "roleBudget": {
+          "type": "object",
+          "description": "语义域预算豁免：仅当图用到 > 3 个 role 时需要。reason 说明为何确实需要这么多语义域；roles 必须**显式列出**全部实际用到的 role（漏列即检查失败）。",
+          "additionalProperties": false,
+          "required": ["reason", "roles"],
+          "properties": {
+            "reason": { "type": "string", "minLength": 8 },
+            "roles": { "type": "array", "minItems": 4, "items": { "$ref": "#/$defs/role" } }
+          }
         }
       }
     }

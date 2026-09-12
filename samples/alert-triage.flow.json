@@ -5,7 +5,11 @@
     "title": "线上告警分级决策树",
     "caption": "图 2-2 · 线上告警分级决策树（P0 / P1 / P2 三级出口）",
     "locale": "zh-CN",
-    "viewBox": [1080, 540]
+    "viewBox": [1080, 540],
+    "roleBudget": {
+      "reason": "决策树需 warn 表告警入口、neutral 表兜底出口、control 与 interaction 分判定和渠道，四域各司其职",
+      "roles": ["control", "interaction", "neutral", "warn"]
+    }
   },
   "nodes": [
     { "id": "alert", "label": "告警触发", "sublabel": "AlertManager", "role": "warn", "kind": "start" },
