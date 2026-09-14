@@ -197,4 +197,33 @@ export const cases = [
       return `${ROLE_KEYS.length} 个 role 闭合`;
     },
   },
+  {
+    name: 'theme：light 档不跟随宿主主题，且等于 follow 去掉暗色块的结果',
+    run() {
+      // 这条不变量是「批量去暗色」改造的正确性依据：
+      // 若两者不等，说明 light 档动了亮色块本身，而不只是省掉暗色块 ——
+      // 那样批量改造会静默改变配色。
+      const follow = styleBlock('follow');
+      const def = styleBlock();
+      const light = styleBlock('light');
+      if (def !== follow) throw new Error('默认档必须等同 follow（向后兼容，不能改默认行为）');
+      if (!follow.includes('@media (prefers-color-scheme: dark)')) {
+        throw new Error('follow 档必须包含 prefers-color-scheme 暗色块');
+      }
+      if (light.includes('prefers-color-scheme')) {
+        throw new Error('light 档不应包含任何 prefers-color-scheme');
+      }
+      // 按「整块删除」语义剥离暗色块：从 @media 行起，到其后第一个顶层 `}` 止。
+      const lines = follow.split('\n');
+      const start = lines.findIndex((l) => l === '@media (prefers-color-scheme: dark) {');
+      if (start < 0) throw new Error('找不到暗色块起始行');
+      let end = start + 1;
+      while (end < lines.length && lines[end] !== '}') end += 1;
+      const stripped = [...lines.slice(0, start), ...lines.slice(end + 1)].join('\n');
+      if (stripped !== light) {
+        throw new Error('follow 去掉暗色块 ≠ light —— 已入库 SVG 将无法用 light 档复现');
+      }
+      return 'light = follow 去暗色块（逐字节相等）';
+    },
+  },
 ];

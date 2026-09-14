@@ -68,6 +68,13 @@ function parseArgs(args) {
       i += 1;
     } else if (a.startsWith('--variant-pair=')) {
       flags.variantPair = a.slice('--variant-pair='.length);
+    } else if (a === '--theme') {
+      const v = args[i + 1];
+      if (!v) throw new UsageError('--theme 需要一个值（follow|light）');
+      flags.theme = v;
+      i += 1;
+    } else if (a.startsWith('--theme=')) {
+      flags.theme = a.slice('--theme='.length);
     } else if (a.startsWith('--')) {
       throw new UsageError(`未知选项：${a}`);
     } else {
@@ -83,6 +90,17 @@ function resolveQuality(raw) {
     throw new UsageError(`--quality 仅支持 standard|showcase，实际为「${q}」`);
   }
   return q;
+}
+
+// 'follow'（默认）= :root 亮色 + prefers-color-scheme 暗色自适应，跟随宿主主题。
+// 'light' = 固定亮色，**不跟随宿主主题**；用于「图必须与读者主题无关」的嵌入场景
+//   （如课程讲义配图、要进 PDF/截图流转的图）。
+function resolveTheme(raw) {
+  const t = raw || 'follow';
+  if (t !== 'follow' && t !== 'light') {
+    throw new UsageError(`--theme 仅支持 follow|light，实际为「${t}」`);
+  }
+  return t;
 }
 
 // =====================================================================
@@ -182,11 +200,11 @@ function summarize(checks) {
 // 在临时 SVG 上执行 fn —— validate 与 render 都走这里，保证「两档跑的是同一批检查」。
 // 历史行为：validate 不渲染，于是 no_ascii / no_base64 / text_no_stroke 在 validate 时被跳过，
 // 「validate 通过」并不等于「render 会通过」。现在两者都在真实产物上判定。
-async function withRenderedSvg(ir, fn) {
+async function withRenderedSvg(ir, fn, theme = 'follow') {
   const { renderSvg } = await loadLib();
   let svg;
   try {
-    svg = renderSvg(ir);
+    svg = renderSvg(ir, { theme });
   } catch (e) {
     return fn(null, [{
       code: 'render/error', severity: 'error', message: `渲染失败：${e.message}`,
@@ -290,7 +308,7 @@ async function cmdValidate(args, command) {
   const type = positional[0];
   const input = positional[1];
   if (!type || !input) {
-    throw new UsageError('用法：archsvg validate <type> <input.json> [--quality standard|showcase] [--variant-pair <dir>] [--json]');
+    throw new UsageError('用法：archsvg validate <type> <input.json> [--quality standard|showcase] [--theme follow|light] [--variant-pair <dir>] [--json]');
   }
   if (!TYPES.has(type)) {
     throw new UsageError(`未知的图类型「${type}」\n支持：architecture / flow / sequence`);
@@ -315,7 +333,7 @@ async function cmdValidate(args, command) {
   const result = await withRenderedSvg(ir, (tmp, renderDiags) => {
     if (renderDiags) return { schemaOk: true, layoutOk: false, diagnostics: renderDiags, checks: [] };
     return runPipeline({ ir, type, svgPath: tmp, profile, variantPair: flags.variantPair ?? null });
-  });
+  }, resolveTheme(flags.theme));
   return finishValidate(command, type, input, profile, flags.json, result);
 }
 
@@ -340,7 +358,7 @@ async function cmdRender(args) {
   const input = positional[1];
   const output = positional[2];
   if (!type || !input || !output) {
-    throw new UsageError('用法：archsvg render <type> <input.json> <output.svg> [--quality standard|showcase] [--variant-pair <dir>] [--json]');
+    throw new UsageError('用法：archsvg render <type> <input.json> <output.svg> [--quality standard|showcase] [--theme follow|light] [--variant-pair <dir>] [--json]');
   }
   if (!TYPES.has(type)) {
     throw new UsageError(`未知的图类型「${type}」\n支持：architecture / flow / sequence`);
@@ -380,7 +398,7 @@ async function cmdRender(args) {
   // 2) 渲染到内存并写入临时文件，供 no_ascii / no_base64 检查
   let svg;
   try {
-    svg = renderSvg(ir);
+    svg = renderSvg(ir, { theme: resolveTheme(flags.theme) });
   } catch (e) {
     const diag = [{
       code: 'render/error', severity: 'error', message: `渲染失败：${e.message}`,
@@ -855,10 +873,11 @@ function printUsage() {
   archsvg doctor                                            环境自检（含文档↔代码常量一致性）
   archsvg test   [--json]                                   跑 tests/*.test.mjs（零依赖）
   archsvg guide "<场景>"                                    分型路由：回流优先 + 打分推荐
-  archsvg validate <type> <input.json> [--quality standard|showcase] [--variant-pair <dir>] [--json]
-  archsvg render   <type> <input.json> <output.svg> [--quality standard|showcase] [--variant-pair <dir>] [--json]
+  archsvg validate <type> <input.json> [--quality standard|showcase] [--theme follow|light] [--variant-pair <dir>] [--json]
+  archsvg render   <type> <input.json> <output.svg> [--quality standard|showcase] [--theme follow|light] [--variant-pair <dir>] [--json]
 
 类型：architecture | flow | sequence
+主题：--theme follow（默认，亮色优先 + 宿主暗色自适应）| light（固定亮色，不跟随宿主主题）
 退出码：0 通过 / 1 验证失败 / 2 用法错误`);
 }
 

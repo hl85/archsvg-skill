@@ -6,7 +6,7 @@ agent_created: true
 
 # archsvg —— IR JSON → 静态 SVG 渲染 + 机械验证
 
-把「结构化图描述（IR JSON）」渲染为**可嵌入文档的静态 SVG**，并对构图质量做 27 项机械检查，产出机器可读回执。自动布局、零 JS、亮色优先 + `prefers-color-scheme: dark`、单图通常 < 15 KB。
+把「结构化图描述（IR JSON）」渲染为**可嵌入文档的静态 SVG**，并对构图质量做 27 项机械检查，产出机器可读回执。自动布局、零 JS、亮色优先 + `prefers-color-scheme: dark`（可用 `--theme light` 固定亮色、不跟随宿主主题）、单图通常 < 15 KB。
 
 **本技能自包含**：只认 IR JSON，不依赖任何外部 skill 或业务语义。
 
@@ -61,12 +61,13 @@ agent_created: true
 archsvg doctor                                              # 环境自检（含文档↔代码常量一致性），全绿打印 "archsvg is ready."
 archsvg test                                                # 跑 tests/*.test.mjs（零依赖，改度量/常量后必跑）
 archsvg guide "<场景>"                                      # 分型路由：先判「是否该回流（别用本管线）」并给替代方案，再按命中词打分推荐类型（并列时报歧义），并附该类型最小必读规则与最简 IR 骨架
-archsvg validate <type> <input.json> [--quality standard|showcase] [--json]
-archsvg render   <type> <input.json> <output.svg> [--quality standard|showcase] [--json]
+archsvg validate <type> <input.json> [--quality standard|showcase] [--theme follow|light] [--json]
+archsvg render   <type> <input.json> <output.svg> [--quality standard|showcase] [--theme follow|light] [--json]
 ```
 
 - `<type>` ∈ `architecture` | `flow` | `sequence`，且必须与 IR 内 `type` 一致。
 - `--quality`：`standard` = 19 项（12 构图 + no_ascii + no_base64 + marker_contract + ref_reachable + svg_a11y + svg_hygiene）；`showcase` = 27 项全过。默认 `standard`。
+- `--theme`：`follow` = 亮色优先 + `prefers-color-scheme` 宿主暗色自适应（**默认**，向后兼容）；`light` = **固定亮色、不跟随宿主主题**。图要进 PDF / 截图 / 课程讲义等「外观必须确定、不能随读者系统主题变」的场景用 `light`。`light` 的产物 **= `follow` 去掉暗色块**（逐字节相等，有回归测试固化）。
 - `--json`：回执以 JSON 输出（见 `references/diagram-contract.md`）；非 `--json` 为人类可读逐项结果。
 - validate 与 render **跑同一批检查**（validate 也先在内存渲染一份产物），故「validate 通过」等价于「render 会通过」。
 - 改了字号/盒宽/标定系数后，除 `test` 与 `doctor` 外还要跑一次渲染级复核（见 `references/design-system.md` §2.3）。

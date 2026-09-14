@@ -188,7 +188,7 @@ archsvg 的做法是**让模型输出结构，而不是输出像素**，并在�
 
 ### 明暗双模
 
-产物内联样式，**亮色优先** + `@media (prefers-color-scheme: dark)` 自动适配。
+产物内联样式，**亮色优先** + `@media (prefers-color-scheme: dark)` 自动适配（要「外观不随读者系统主题变」时用 `--theme light` 固定亮色，见 CLI 段）。
 两个模式下文字与填充的对比度都 ≥ 4.5:1（WCAG AA），由 `theme_readable` 检查强制保证。
 
 ### 画幅体检（出图后 30 秒）
@@ -258,12 +258,13 @@ node bin/archsvg.mjs render   architecture demo.json demo.svg --quality showcase
 archsvg doctor                                            环境自检（含文档↔代码常量一致性）
 archsvg test                                              跑零依赖测试（含几何行为基线差分测试）
 archsvg guide "<场景>"                                    分型建议：回流优先 + 打分推荐 + 该类型最小规则
-archsvg validate <type> <input.json> [--quality standard|showcase] [--json]
-archsvg render   <type> <input.json> <output.svg> [--quality standard|showcase] [--json]
+archsvg validate <type> <input.json> [--quality standard|showcase] [--theme follow|light] [--json]
+archsvg render   <type> <input.json> <output.svg> [--quality standard|showcase] [--theme follow|light] [--json]
 ```
 
 - `<type>` ∈ `architecture` | `flow` | `sequence`
 - `--quality`：`standard` 19 项 / `showcase` 27 项（默认 `standard`）
+- `--theme`：`follow`（默认）亮色优先 + 宿主暗色自适应；`light` **固定亮色、不跟随宿主主题**——用于图要进 PDF / 截图 / 课程讲义等外观必须确定的场景。`light` 产物 **= `follow` 去掉暗色块**（逐字节相等，`tests/invariants.test.mjs` 固化）。
 - `--json`：输出机器可读回执，含 `checks`、`composition.summary`、`artifact.sha256`
 - `validate` 与 `render` **跑同一批检查**（都会先渲染一份产物），故"validate 通过"等价于"render 会通过"
 
