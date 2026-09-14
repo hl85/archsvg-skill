@@ -21,6 +21,12 @@
       "$ref": "common.schema.json#/$defs/meta",
       "description": "图元信息（title 必填）。"
     },
+    "layout": {
+      "description": "单链排列方向（仅对无 stages 的单链 flow 生效）：vertical=自上而下（默认）；horizontal=自左向右。带 stages 的演进图固定为横向分列。",
+      "type": "string",
+      "enum": ["vertical", "horizontal"],
+      "default": "vertical"
+    },
     "stages": {
       "description": "演进阶段带（可选），用于演进路线图，每个阶段一个标签。",
       "type": "array",
