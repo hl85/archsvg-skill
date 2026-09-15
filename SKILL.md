@@ -91,6 +91,7 @@ archsvg render   <type> <input.json> <output.svg> [--quality standard|showcase] 
 - `references/design-system.md` —— **固定风格约定 + 可复制 fewshot**：域→role 配色映射、字级/线宽表、**字宽标定表与盒宽公式**、渲染级复核命令、文案规范、布局三原则、出图前自检 6 条。**写第一版 IR 前先读它**，能省掉大半返工。
 - `references/diagram-spec.md` —— IR 字段完整说明、`role` 三域语义、布局规则（含分带与列心漂移规律）、修复优先级。
 - `references/diagram-contract.md` —— Diagnostic / Check / 回执契约、27 项检查逐项说明、档位项数、文档口径断言、退出码表。
+- `references/rendered-output-audit.md` —— **批量审计已渲染产物**：本管线产物的识别特征（并集口径，及 `class="node"` 为何是误报源）、IR 中缀清点、等价性比对（逐字节 `cmp` / 文本须拼接后比）、样式代际判定与四条审计纪律。要回答「这批 SVG 里哪些是本管线产物 / IR 是否齐备 / 是否仍一致 / 哪些是旧样式」时读它。
 
 ## 代码结构（改代码前先看）
 
