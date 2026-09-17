@@ -80,7 +80,7 @@ export const cases = [
       // 强度说明：这是**「不等于」断言**，不是感知阈值断言。它只保证组框填充没有塌缩成
       // 同一个色值，**不保证**肉眼一定可分辨——可辨识度由 headless 浏览器实测佐证
       // （见 design-system.md §2.3 的渲染级验证）。
-      // 背景：archsvg 约定「节点 role 与所属域一致」，节点常与所在带同 role；若两者填充
+      // 背景：v2svg 约定「节点 role 与所属域一致」，节点常与所在带同 role；若两者填充
       // 取值相同（向画布混时 neutral 会这样），节点在自己的带里就看不见了。
       const modes = ['light', 'dark'];
       const bad = [];

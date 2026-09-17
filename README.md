@@ -1,4 +1,4 @@
-# archsvg
+# v2svg
 
 > 面向开发者的架构图设计 skill：**让 AI 在设计技术文档时，把风格规范的图无缝嵌进文档细节里。**
 
@@ -14,7 +14,7 @@
 | **mermaid** | 纯文本，Markdown 原生支持 | 布局**不可控**（节点位置由它决定）、风格无法规范化、稍复杂就挤成一团 |
 | **PNG / 截图** | 所见即所得 | 二进制、不可 diff、不可检索、缩放糊 |
 | **手写 SVG** | 完全可控 | 要自己算坐标；模型一次性输出，画错只能整体重来 |
-| **archsvg 产出的 SVG** | 单文件、纯文本、可 diff、可检索、跟随明暗主题、缩放到任意尺寸都锐利 | —— |
+| **v2svg 产出的 SVG** | 单文件、纯文本、可 diff、可检索、跟随明暗主题、缩放到任意尺寸都锐利 | —— |
 
 SVG 是**纯文本**，所以它天然对 LLM 友好（能读、能写、能改局部），又**所见即所得**（浏览器/飞书/Obsidian/GitHub 直接渲染）。
 
@@ -28,7 +28,7 @@ SVG 是**纯文本**，所以它天然对 LLM 友好（能读、能写、能改�
 | 一次性输出 | 画错没有诊断，只能整体重来 |
 | 风格漂移 | 每次生成一个样，跨文档、跨仓库都不一致 |
 
-archsvg 的做法是**让模型输出结构，而不是输出像素**，并在出图前**做 27 项机械检查**：
+v2svg 的做法是**让模型输出结构，而不是输出像素**，并在出图前**做 27 项机械检查**：
 
 ```
 自然语言 / 代码 / 文档片段
@@ -203,7 +203,7 @@ archsvg 的做法是**让模型输出结构，而不是输出像素**，并在�
 
 ## 其他使用细节
 
-### 什么时候**不要**用 archsvg
+### 什么时候**不要**用 v2svg
 
 `guide` 会主动把下面这些场景**推给更合适的工具**，而不是硬出一张图：
 
@@ -212,7 +212,7 @@ archsvg 的做法是**让模型输出结构，而不是输出像素**，并在�
 | 数据库表结构 / ER / 字段清单 | mermaid `erDiagram` | 字段列表在盒子里塞不下，且表结构改得频繁 |
 | 循环 / 闭环 / 轮转 | 分阶段线性 + 回边，或交互式步骤说明 | 环形布局可读性差、节点文字被压缩 |
 | 地图 / 地理分布 | 外部地图工具 + 真实拓扑数据 | 手搓坐标画地图必错 |
-| 柱状图 / 折线 / 占比 / 趋势 | 外部图表工具 | archsvg 是结构图工具，不是数据图表工具 |
+| 柱状图 / 折线 / 占比 / 趋势 | 外部图表工具 | v2svg 是结构图工具，不是数据图表工具 |
 | 纯数据表 / 参数清单 | Markdown 表格 | 结构化数据优先用表格 |
 
 ### 快速开始
@@ -220,8 +220,8 @@ archsvg 的做法是**让模型输出结构，而不是输出像素**，并在�
 无需安装依赖，Clone 即可用：
 
 ```bash
-node bin/archsvg.mjs doctor     # 环境自检，全绿打印 "archsvg is ready."
-node bin/archsvg.mjs guide "订单创建的服务调用链"   # 让 tool 先建议类型与骨架
+node bin/svg.mjs doctor     # 环境自检，全绿打印 "v2svg is ready."
+node bin/svg.mjs guide "订单创建的服务调用链"   # 让 tool 先建议类型与骨架
 ```
 
 写一个 IR（完整字段见 `schemas/` 与 `examples/`）：
@@ -246,8 +246,8 @@ node bin/archsvg.mjs guide "订单创建的服务调用链"   # 让 tool 先建�
 验证并出图：
 
 ```bash
-node bin/archsvg.mjs validate architecture demo.json --quality showcase
-node bin/archsvg.mjs render   architecture demo.json demo.svg --quality showcase --json
+node bin/svg.mjs validate architecture demo.json --quality showcase
+node bin/svg.mjs render   architecture demo.json demo.svg --quality showcase --json
 ```
 
 验证不通过时 `render` **绝不产出文件**。
@@ -255,11 +255,11 @@ node bin/archsvg.mjs render   architecture demo.json demo.svg --quality showcase
 ### CLI
 
 ```bash
-archsvg doctor                                            环境自检（含文档↔代码常量一致性）
-archsvg test                                              跑零依赖测试（含几何行为基线差分测试）
-archsvg guide "<场景>"                                    分型建议：回流优先 + 打分推荐 + 该类型最小规则
-archsvg validate <type> <input.json> [--quality standard|showcase] [--theme follow|light] [--json]
-archsvg render   <type> <input.json> <output.svg> [--quality standard|showcase] [--theme follow|light] [--json]
+svg doctor                                            环境自检（含文档↔代码常量一致性）
+svg test                                              跑零依赖测试（含几何行为基线差分测试）
+svg guide "<场景>"                                    分型建议：回流优先 + 打分推荐 + 该类型最小规则
+svg validate <type> <input.json> [--quality standard|showcase] [--theme follow|light] [--json]
+svg render   <type> <input.json> <output.svg> [--quality standard|showcase] [--theme follow|light] [--json]
 ```
 
 - `<type>` ∈ `architecture` | `flow` | `sequence`
@@ -311,21 +311,21 @@ Markdown 引用可达、图题规范、明暗双模对比度、多版本目录�
 
 几何内核 `lib/geometry.mjs` 的行为由 **1278 条冻结基线**锁定（`tests/fixtures/geometry-golden.json`
 + `tests/geometry-parity.test.mjs`，相对容差 1e-9）。改它之前请先读 [`lib/geometry.spec.md`](lib/geometry.spec.md)
-（黑盒行为契约）并跑 `archsvg test`。
+（黑盒行为契约）并跑 `svg test`。
 
 ---
 
 ## 目录结构
 
 ```
-archsvg/
+v2svg/
 ├── SKILL.md                     # 技能入口（供 Agent 发现与加载）
 ├── README.md                    # 本文件
 ├── LICENSE                      # MIT
 ├── THIRD_PARTY_NOTICES.md       # 第三方代码声明（当前为空：全部自研）
 ├── package.json                 # { name, type: module, private: true }
 ├── bin/
-│   ├── archsvg.mjs              # CLI 入口（doctor / test / guide / validate / render）
+│   ├── v2svg.mjs              # CLI 入口（doctor / test / guide / validate / render）
 │   └── guide-routing.mjs        # 分型判据：负向回流表 + 打分推荐 + 各类型最小规则
 ├── lib/
 │   ├── geometry.mjs             # 自研几何内核（8 个导出，行为由冻结基线锁定）
@@ -341,7 +341,7 @@ archsvg/
 │       ├── composition.mjs      # 构图检查 12 项
 │       └── document.mjs         # 文档集成检查 15 项
 ├── schemas/{common,architecture,flow,sequence}.schema.json
-├── tests/                       # 零依赖测试（archsvg test）
+├── tests/                       # 零依赖测试（svg test）
 │   ├── geometry-parity.test.mjs #   几何行为基线差分测试（1278 条，判据来源）
 │   ├── fixtures/                #   冻结的行为基线（语料 + golden）
 │   └── tools/                   #   基线生成脚本（已加硬闸门，默认拒绝运行）
@@ -362,8 +362,8 @@ archsvg/
 ### 必跑（缺一不可）
 
 ```bash
-node bin/archsvg.mjs doctor      # 自检 + 文档↔代码常量一致性
-node bin/archsvg.mjs test        # 零依赖测试（含几何行为基线差分测试）
+node bin/svg.mjs doctor      # 自检 + 文档↔代码常量一致性
+node bin/svg.mjs test        # 零依赖测试（含几何行为基线差分测试）
 for f in samples/*.json; do :; done   # 若改动影响渲染，重渲染 samples 并确认产物可复现
 ```
 
@@ -509,11 +509,11 @@ node tests/verify-rendered-svg.tool.mjs
   `.edge-label` 已 `dominant-baseline: central` 却仍额外 `+3px`（文字稳定探出遮罩下沿 3.5px）。
 - `validate` 改为同样先在内存渲染产物 → 与 `render` 跑同一批检查（此前 validate 静默跳过
   产物级检查，「validate 通过」≠「render 会通过」）。
-- 新增 `archsvg test` 与 `tests/`：19 项零依赖断言 + 2 个 headless 浏览器工具（含负向用例，保证每项检查可证伪）。
-- `archsvg doctor` 新增「docs 常量 ↔ 代码常量」断言（首次运行即抓出 13 处文档↔代码漂移）。
+- 新增 `svg test` 与 `tests/`：19 项零依赖断言 + 2 个 headless 浏览器工具（含负向用例，保证每项检查可证伪）。
+- `svg doctor` 新增「docs 常量 ↔ 代码常量」断言（首次运行即抓出 13 处文档↔代码漂移）。
 
 #### v0.1.2 —— 三类型、17 项检查（新增 `text_no_stroke`）、画布自动贴合、共列网格、固定风格设计系统。
 
 ---
 
-archsvg 自身以 **MIT** 发布，见 [`LICENSE`](LICENSE)。
+v2svg 自身以 **MIT** 发布，见 [`LICENSE`](LICENSE)。

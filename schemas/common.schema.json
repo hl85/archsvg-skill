@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "common.schema.json",
-  "title": "archsvg 公共 IR 契约（所有图类型的共有骨架与可复用定义）",
-  "description": "本文件是 archsvg 全部图类型的「公共骨架」与 $defs 定义源。各类型 schema（architecture/flow/sequence）通过【相对 $ref】引用本文件，例如 \"$ref\": \"common.schema.json#/$defs/role\"。校验器（手写 JSON-Schema 子集校验器）【必须支持相对 $ref 解析】：以当前被校验 schema 文件所在目录为基准，将相对路径解析为同目录下的 common.schema.json 后读取其 $defs。本文件不直接作为顶层文档校验入口，而是被类型 schema 内联引用。",
+  "title": "v2svg 公共 IR 契约（所有图类型的共有骨架与可复用定义）",
+  "description": "本文件是 v2svg 全部图类型的「公共骨架」与 $defs 定义源。各类型 schema（architecture/flow/sequence）通过【相对 $ref】引用本文件，例如 \"$ref\": \"common.schema.json#/$defs/role\"。校验器（手写 JSON-Schema 子集校验器）【必须支持相对 $ref 解析】：以当前被校验 schema 文件所在目录为基准，将相对路径解析为同目录下的 common.schema.json 后读取其 $defs。本文件不直接作为顶层文档校验入口，而是被类型 schema 内联引用。",
   "$defs": {
     "role": {
       "description": "角色枚举（全类型共用）：control=控制/编排；capability=能力/组件；interaction=交互/边界；warn=告警/拦截；neutral=中性/基础设施。渲染器据此映射到 §2.4 配色 token。",

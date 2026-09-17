@@ -1,10 +1,10 @@
 ---
-name: archsvg
+name: v2svg
 description: This skill should be used when the user asks to create, redraw, or validate a professional diagram — architecture, system topology, flowchart, pipeline, sequence diagram, decision tree, state flow, or comparison (架构图 / 拓扑图 / 流程图 / 时序图 / 决策树). Accepts IR JSON, Markdown, or plain prose as input and renders one self-contained static SVG with automatic layout, light/dark theming, zero JavaScript, and 27 mechanical checks. Also converts Mermaid or prose into static SVG. Not for raster images or freeform artwork.
 agent_created: true
 ---
 
-# archsvg —— IR JSON → 静态 SVG 渲染 + 机械验证
+# v2svg —— IR JSON → 静态 SVG 渲染 + 机械验证
 
 把「结构化图描述（IR JSON）」渲染为**可嵌入文档的静态 SVG**，并对构图质量做 27 项机械检查，产出机器可读回执。自动布局、零 JS、亮色优先 + `prefers-color-scheme: dark`（可用 `--theme light` 固定亮色、不跟随宿主主题）、单图通常 < 15 KB。
 
@@ -15,9 +15,9 @@ agent_created: true
 1. **选类型**：按下方「类型路由表」确定 `architecture` / `flow` / `sequence`。
 2. **读约定 + schema + example**：先读 `references/design-system.md`（域→role 配色、文案模板、fewshot）；再对照 `schemas/<type>.schema.json` 与 `examples/<type>.json`；成品级参考（含已渲染 SVG、覆盖全部类型与变体）见 `samples/`。
 3. **写 IR**：只填语义（`role` / `label` / `edges`），**禁止手写坐标**——坐标由 `lib/layout.mjs` 自动布局。
-4. **validate**：`archsvg validate <type> <ir.json> --quality showcase`。
+4. **validate**：`svg validate <type> <ir.json> --quality showcase`。
 5. **按诊断修**：回执里的 `diagnostics[].supportedFixes` 是定点修复建议，逐条改 IR，**不要为了让检查通过而裁剪语义**。
-6. **render**：全部通过后 `archsvg render <type> <ir.json> <out.svg> --quality showcase` 才产出文件。
+6. **render**：全部通过后 `svg render <type> <ir.json> <out.svg> --quality showcase` 才产出文件。
 
 ## 类型路由表
 
@@ -49,7 +49,7 @@ agent_created: true
 
 - ❌ 用裁剪内容、缩小字号、`overflow:hidden` 伪造检查通过。
 - ❌ 在验证失败时产出 SVG 文件（`render` 验证不过绝不写盘）。
-- ❌ 未经 `archsvg test` 通过就改动 `lib/geometry.mjs`：它的行为由 1278 条冻结基线锁定，改完必须全过；
+- ❌ 未经 `svg test` 通过就改动 `lib/geometry.mjs`：它的行为由 1278 条冻结基线锁定，改完必须全过；
   也不得重跑 `tests/tools/` 下的基线生成脚本（会把判据换成实现自己的输出）。
 - ❌ 在 IR 里手写坐标（`pos`/`x`/`y` 等由布局器生成）。
 - ❌ 依赖任何外部 skill 文件，或让 IR 语义耦合某个具体业务领域。
@@ -58,11 +58,11 @@ agent_created: true
 ## CLI 用法
 
 ```bash
-archsvg doctor                                              # 环境自检（含文档↔代码常量一致性），全绿打印 "archsvg is ready."
-archsvg test                                                # 跑 tests/*.test.mjs（零依赖，改度量/常量后必跑）
-archsvg guide "<场景>"                                      # 分型路由：先判「是否该回流（别用本管线）」并给替代方案，再按命中词打分推荐类型（并列时报歧义），并附该类型最小必读规则与最简 IR 骨架
-archsvg validate <type> <input.json> [--quality standard|showcase] [--theme follow|light] [--json]
-archsvg render   <type> <input.json> <output.svg> [--quality standard|showcase] [--theme follow|light] [--json]
+svg doctor                                              # 环境自检（含文档↔代码常量一致性），全绿打印 "v2svg is ready."
+svg test                                                # 跑 tests/*.test.mjs（零依赖，改度量/常量后必跑）
+svg guide "<场景>"                                      # 分型路由：先判「是否该回流（别用本管线）」并给替代方案，再按命中词打分推荐类型（并列时报歧义），并附该类型最小必读规则与最简 IR 骨架
+svg validate <type> <input.json> [--quality standard|showcase] [--theme follow|light] [--json]
+svg render   <type> <input.json> <output.svg> [--quality standard|showcase] [--theme follow|light] [--json]
 ```
 
 - `<type>` ∈ `architecture` | `flow` | `sequence`，且必须与 IR 内 `type` 一致。
@@ -104,5 +104,5 @@ archsvg render   <type> <input.json> <output.svg> [--quality standard|showcase] 
 | `lib/layout.mjs` | 自动布局（纯计算） | 坐标改动须同时平移 `cx/cy`（`node_text_in_box` 会拦） |
 | `lib/render.mjs` | IR → SVG 字符串 | **不得出现裸数值**，全部引用常量模块 |
 | `lib/geometry.mjs` | 自研几何内核（8 个导出） | 可改，但**必须先过 `tests/geometry-parity.test.mjs`**（1278 条冻结基线） |
-| `tests/*.test.mjs` | 零依赖断言（`archsvg test`） | 改上面任一项后必跑 |
-| `tests/*.tool.mjs` | 需 headless 浏览器的工具，不属 `archsvg test` | 改度量/渲染后手动跑 |
+| `tests/*.test.mjs` | 零依赖断言（`svg test`） | 改上面任一项后必跑 |
+| `tests/*.tool.mjs` | 需 headless 浏览器的工具，不属 `svg test` | 改度量/渲染后手动跑 |

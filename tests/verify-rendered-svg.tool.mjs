@@ -1,4 +1,4 @@
-// 渲染级文字适配校验（需要 headless Chromium，故不属 `archsvg test`）：
+// 渲染级文字适配校验（需要 headless Chromium，故不属 `svg test`）：
 // 打开渲染好的 SVG，实测每个盒子里 <text> 的 bbox 是否越出盒内区，
 // 以及每条边标签的背景遮罩是否真的盖住文字 bbox。
 //

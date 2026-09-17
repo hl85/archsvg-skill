@@ -22,7 +22,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SAMPLES = path.join(HERE, '..', 'samples');
 const readSample = (f) => JSON.parse(readFileSync(path.join(SAMPLES, f), 'utf8'));
 
-const TMP = mkdtempSync(path.join(os.tmpdir(), 'archsvg-test-'));
+const TMP = mkdtempSync(path.join(os.tmpdir(), 'v2svg-test-'));
 const writeTmp = (name, content) => {
   const p = path.join(TMP, name);
   writeFileSync(p, content, 'utf8');

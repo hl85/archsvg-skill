@@ -36,7 +36,7 @@ const REFERENCE_SHA256 = 'fcc6f6855fef465fbcbe780009fa083867ae8abd7814dfc47cb6ab
 const REFERENCE_DESC = '当 vendored 的 lib/geometry.mjs（1430 行，archify v2.17.0-dev.1）';
 
 function resolveReference() {
-  const p = process.env.ARCHSVG_GEOMETRY_REFERENCE;
+  const p = process.env.SVG_GEOMETRY_REFERENCE;
   if (!p) {
     console.error([
       '✗ 拒绝运行：本脚本已退役，输出即 parity 判据，不能用当前实现覆盖。',
@@ -44,13 +44,13 @@ function resolveReference() {
       `  它只应在「${REFERENCE_DESC} 还在、需要重新捕获基线」时运行。`,
       '  如需重放，请显式提供参考实现并确认其哈希：',
       '',
-      `    ARCHSVG_GEOMETRY_REFERENCE=<path> node tests/tools/capture-geometry-golden.mjs`,
+      `    SVG_GEOMETRY_REFERENCE=<path> node tests/tools/capture-geometry-golden.mjs`,
       '',
       `  参考实现的 sha256 必须等于 ${REFERENCE_SHA256}`,
       `  （可从 git 历史取：git show <vendored-commit>:lib/geometry.mjs）`,
       '',
       '  另：本脚本的 import 目标已改为 lib/geometry.mjs（自研实现），',
-      '  仅当 ARCHSVG_GEOMETRY_REFERENCE 指向的文件内容与其哈希匹配时才继续。',
+      '  仅当 SVG_GEOMETRY_REFERENCE 指向的文件内容与其哈希匹配时才继续。',
     ].join('\n'));
     process.exit(2);
   }

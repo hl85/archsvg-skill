@@ -11,18 +11,18 @@
 | `tests/tools/geometry-codec.mjs` | 入参/结果的编解码器（单点定义 `NaN` / `Infinity` / `undefined` / 函数 / 循环引用的 JSON 标记）与带 1e-9 相对容差的深度比较 |
 | `tests/tools/build-geometry-corpus.mjs` | 产出**入参语料** `tests/fixtures/geometry-corpus.json`（真实数据 + 合成边界） |
 | `tests/tools/capture-geometry-golden.mjs` | ⚠️ 只在 vendored 代码还在时可用：跑当前实现，产出**行为基线** `tests/fixtures/geometry-golden.json` |
-| `tests/geometry-parity.test.mjs` | parity 测试：逐条比对被测实现与基线；`archsvg test` 自动发现 |
+| `tests/geometry-parity.test.mjs` | parity 测试：逐条比对被测实现与基线；`svg test` 自动发现 |
 | `tests/fixtures/*.json` | 生成物（语料 670 KB / golden 703 KB），随仓库提交 |
 
 ## 用法
 
 ```bash
-node bin/archsvg.mjs test                     # 跑 parity（日常只需要这一条）
+node bin/svg.mjs test                     # 跑 parity（日常只需要这一条）
 ```
 
 > ⛔ **两个生成脚本都已退役，且带硬闸门，默认拒绝运行。**
 > 它们产出的是 parity 的判据本身，而判据**已随净室重写冻结**：
-> - `capture-geometry-golden.mjs`：须 `ARCHSVG_GEOMETRY_REFERENCE=<参考实现路径>` 且该文件
+> - `capture-geometry-golden.mjs`：须 `SVG_GEOMETRY_REFERENCE=<参考实现路径>` 且该文件
 >   sha256 等于 `fcc6f6855fef465fbcbe780009fa083867ae8abd7814dfc47cb6ab3ddca7ce90`，否则拒绝。
 > - `build-geometry-corpus.mjs`：语料已存在时须显式 `--force`，否则拒绝。
 >
@@ -81,9 +81,9 @@ node -e 'const fs=require("fs");const s=fs.readFileSync("lib/geometry.mjs","utf8
 fs.writeFileSync("tests/tools/geometry-broken.mjs",s.replace("./diagnostics.mjs","../../lib/diagnostics.mjs"))'
 # 2) 手工把某个阈值/守卫改坏（见下表）
 # 3) 用覆盖开关跑
-ARCHSVG_GEOMETRY_IMPL=./tools/geometry-broken.mjs node bin/archsvg.mjs test
+SVG_GEOMETRY_IMPL=./tools/geometry-broken.mjs node bin/svg.mjs test
 # 4) 验证完删除副本，确认默认路径重新全绿
-rm tests/tools/geometry-broken.mjs && node bin/archsvg.mjs test
+rm tests/tools/geometry-broken.mjs && node bin/svg.mjs test
 ```
 
 ### 本轮实测结果（2026-09-12）
@@ -124,6 +124,6 @@ rm tests/tools/geometry-broken.mjs && node bin/archsvg.mjs test
 
 ## 与 harness 的关系
 
-本目录的 `tests/*.test.mjs` 会被 `archsvg test` 自动发现（约定：导出 `cases = [{ name, run }]`）。
-本套设施不改动 `lib/` 下任何文件，也不新增依赖，`archsvg doctor` 的文档↔代码常量一致性
+本目录的 `tests/*.test.mjs` 会被 `svg test` 自动发现（约定：导出 `cases = [{ name, run }]`）。
+本套设施不改动 `lib/` 下任何文件，也不新增依赖，`svg doctor` 的文档↔代码常量一致性
 检查不受影响。

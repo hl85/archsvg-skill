@@ -20,9 +20,9 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 import * as geometryDefault from '../lib/geometry.mjs';
 
 // 可证伪性验证用的覆盖开关（见 tests/README-geometry-parity.md）：
-//   ARCHSVG_GEOMETRY_IMPL=./tools/geometry-broken.mjs node bin/archsvg.mjs test
+//   SVG_GEOMETRY_IMPL=./tools/geometry-broken.mjs node bin/svg.mjs test
 // 默认（不设置）时走上面那一行的常量。
-const IMPL_OVERRIDE = process.env.ARCHSVG_GEOMETRY_IMPL || null;
+const IMPL_OVERRIDE = process.env.SVG_GEOMETRY_IMPL || null;
 const geometry = IMPL_OVERRIDE
   ? await import(new URL(IMPL_OVERRIDE, import.meta.url).href)
   : geometryDefault;

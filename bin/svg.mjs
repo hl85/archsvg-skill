@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// archsvg CLI 入口 —— 把 IR JSON 渲染为可嵌入文档的静态 SVG，并做机械验证。
+// v2svg CLI 入口 —— 把 IR JSON 渲染为可嵌入文档的静态 SVG，并做机械验证。
 //
 // 设计铁律：
 //   - 所有路径用 import.meta.url 相对解析，支持任意 cwd 调用；
@@ -211,7 +211,7 @@ async function withRenderedSvg(ir, fn, theme = 'follow') {
       subject: {}, evidence: {}, supportedFixes: [],
     }]);
   }
-  const tmp = path.join(os.tmpdir(), `archsvg-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}.svg`);
+  const tmp = path.join(os.tmpdir(), `v2svg-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}.svg`);
   writeFileSync(tmp, svg, 'utf8');
   try {
     return await fn(tmp, null);
@@ -308,7 +308,7 @@ async function cmdValidate(args, command) {
   const type = positional[0];
   const input = positional[1];
   if (!type || !input) {
-    throw new UsageError('用法：archsvg validate <type> <input.json> [--quality standard|showcase] [--theme follow|light] [--variant-pair <dir>] [--json]');
+    throw new UsageError('用法：svg validate <type> <input.json> [--quality standard|showcase] [--theme follow|light] [--variant-pair <dir>] [--json]');
   }
   if (!TYPES.has(type)) {
     throw new UsageError(`未知的图类型「${type}」\n支持：architecture / flow / sequence`);
@@ -358,7 +358,7 @@ async function cmdRender(args) {
   const input = positional[1];
   const output = positional[2];
   if (!type || !input || !output) {
-    throw new UsageError('用法：archsvg render <type> <input.json> <output.svg> [--quality standard|showcase] [--theme follow|light] [--variant-pair <dir>] [--json]');
+    throw new UsageError('用法：svg render <type> <input.json> <output.svg> [--quality standard|showcase] [--theme follow|light] [--variant-pair <dir>] [--json]');
   }
   if (!TYPES.has(type)) {
     throw new UsageError(`未知的图类型「${type}」\n支持：architecture / flow / sequence`);
@@ -413,7 +413,7 @@ async function cmdRender(args) {
     return 1;
   }
 
-  const tmp = path.join(os.tmpdir(), `archsvg-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}.svg`);
+  const tmp = path.join(os.tmpdir(), `v2svg-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}.svg`);
   writeFileSync(tmp, svg, 'utf8');
 
   // 3) 完整跑全部检查（含针对实际 SVG 的 no_ascii / no_base64）
@@ -505,7 +505,7 @@ const REASON = {
 function cmdGuide(args) {
   const scene = args.join(' ').trim();
   if (!scene) {
-    throw new UsageError('用法：archsvg guide "<场景描述>"');
+    throw new UsageError('用法：svg guide "<场景描述>"');
   }
 
   // 1) 负向优先：命中回流表就不硬推荐图类型。
@@ -624,7 +624,7 @@ async function check(label, fn) {
 //
 // 由来：同类系统的真实事故是「指南是实现的**手工拷贝**」——文件头写着「如需升级请同步修改
 // 另一份并重新拷贝此文件」，于是两份必然漂移，而所有面向产物的检查都查不出来。
-// archsvg 里已经发生过同类漂移：口径写成 `standard` 14 项（实际 13）、`showcase 须 15/15`
+// v2svg 里已经发生过同类漂移：口径写成 `standard` 14 项（实际 13）、`showcase 须 15/15`
 // （实际 17）、`label_route_clearance` 阈值写成 14px（实际 15）。
 //
 // 本项把「文档里的数值」变成可断言的契约：任何一侧改动而忘记同步，doctor 立刻变红。
@@ -856,10 +856,10 @@ async function cmdDoctor() {
   }
   console.log('');
   if (allOk) {
-    console.log('archsvg is ready.');
+    console.log('v2svg is ready.');
     return 0;
   }
-  console.log('archsvg 自检未通过，请修复上述 [fail] 项。');
+  console.log('v2svg 自检未通过，请修复上述 [fail] 项。');
   return 1;
 }
 
@@ -867,14 +867,14 @@ async function cmdDoctor() {
 // 入口分发
 // =====================================================================
 function printUsage() {
-  console.log(`archsvg —— 把 IR JSON 渲染为可嵌入文档的静态 SVG 并做机械验证
+  console.log(`v2svg —— 把 IR JSON 渲染为可嵌入文档的静态 SVG 并做机械验证
 
 用法：
-  archsvg doctor                                            环境自检（含文档↔代码常量一致性）
-  archsvg test   [--json]                                   跑 tests/*.test.mjs（零依赖）
-  archsvg guide "<场景>"                                    分型路由：回流优先 + 打分推荐
-  archsvg validate <type> <input.json> [--quality standard|showcase] [--theme follow|light] [--variant-pair <dir>] [--json]
-  archsvg render   <type> <input.json> <output.svg> [--quality standard|showcase] [--theme follow|light] [--variant-pair <dir>] [--json]
+  svg doctor                                            环境自检（含文档↔代码常量一致性）
+  svg test   [--json]                                   跑 tests/*.test.mjs（零依赖）
+  svg guide "<场景>"                                    分型路由：回流优先 + 打分推荐
+  svg validate <type> <input.json> [--quality standard|showcase] [--theme follow|light] [--variant-pair <dir>] [--json]
+  svg render   <type> <input.json> <output.svg> [--quality standard|showcase] [--theme follow|light] [--variant-pair <dir>] [--json]
 
 类型：architecture | flow | sequence
 主题：--theme follow（默认，亮色优先 + 宿主暗色自适应）| light（固定亮色，不跟随宿主主题）

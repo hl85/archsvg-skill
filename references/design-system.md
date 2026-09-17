@@ -1,4 +1,4 @@
-# archsvg 设计系统（固定风格 · fewshot）
+# v2svg 设计系统（固定风格 · fewshot）
 
 > 目的：让同一套图在不同文档里**长得一样**，并让 IR 一次写对、少走返工。
 > 本文是**约定**，不是新机制——所有约束都用既有 IR 字段表达。
@@ -54,7 +54,7 @@
   暗色 = 该 role 暗色 `fill` 降到 **alpha 0.10** 的半透明域色（低于节点的 0.16–0.18）。
 - **描边** = **沿用 `.frame` 原有的 `--panel-border`（浅色）**，不新造 token、不用 600 级。
 
-> ⚠️ **为什么组框描边不能用 600 级**：archsvg 约定「**节点 role 与所属域一致**」，
+> ⚠️ **为什么组框描边不能用 600 级**：v2svg 约定「**节点 role 与所属域一致**」，
 > 所以节点常与它所在的带同 role。若带与节点的描边都用 600 级、填充又都接近白色，
 > 节点在自己的带里就**几乎看不出来**（实测 order-system / ci-pipeline / sync-async-compare
 > 都属于这种同 role 嵌套）。向 `panel` 混色（而非向画布混）保证带头**恒比同 role 节点填充亮**
@@ -83,7 +83,7 @@ headless 浏览器实测佐证（§2.3）。
 ### 2.1 字级与线宽（固定值，不要逐图调）
 
 **唯一出处是 `lib/typography.mjs` 的 `TYPE_SCALE` / `STROKE`**，本表是它的可读副本。
-`archsvg doctor` 会断言本表与代码常量一致——改任意一边而忘记同步，doctor 立刻变红。
+`svg doctor` 会断言本表与代码常量一致——改任意一边而忘记同步，doctor 立刻变红。
 
 | 元素 | 字号 / 字重 |
 |:---|:---|
@@ -98,7 +98,7 @@ headless 浏览器实测佐证（§2.3）。
 > 💡 **改字号只需改一处**：`lib/typography.mjs` 的 `TYPE_SCALE`。
 > 因 `theme.mjs`（CSS）、`layout.mjs`（盒宽/盒高估算）、`checks/composition.mjs`（标签矩形）、
 > `render.mjs`（绘制）**全部从该表取值**，不再各自硬编码。
-> 改完跑 `node bin/archsvg.mjs test` + `node bin/archsvg.mjs doctor`，
+> 改完跑 `node bin/svg.mjs test` + `node bin/svg.mjs doctor`，
 > 再跑一次渲染级校验（见 2.3）。
 
 ---
@@ -119,7 +119,7 @@ headless 浏览器实测佐证（§2.3）。
 | 其它 | 0.55 | — |
 
 **实测口径**：headless Chromium + `getComputedTextLength()`，`system-ui` 字体族，
-按 archsvg 实际用到的字号/字重逐类取样（脚本：`tests/calibrate-text-metrics.tool.mjs`）。
+按 v2svg 实际用到的字号/字重逐类取样（脚本：`tests/calibrate-text-metrics.tool.mjs`）。
 在 7 个真实文案样本上，本表**最大绝对误差 4.8%**；改之前的单一「CJK 1.0 / 其余 0.55」
 为 10.6%。
 

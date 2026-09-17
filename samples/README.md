@@ -50,9 +50,9 @@
 只改 `.json`，验证通过后再重渲染（`<type>` 取该样例的类型）：
 
 ```bash
-cd /path/to/archsvg
-node bin/archsvg.mjs validate architecture samples/order-system.architecture.json --quality showcase
-node bin/archsvg.mjs render   architecture samples/order-system.architecture.json samples/order-system.svg --quality showcase
+cd /path/to/v2svg
+node bin/svg.mjs validate architecture samples/order-system.architecture.json --quality showcase
+node bin/svg.mjs render   architecture samples/order-system.architecture.json samples/order-system.svg --quality showcase
 ```
 
 **验证不通过时 `render` 不产出文件**。回执会指出是哪条检查、哪个节点/边、实测多少、建议怎么修。
@@ -62,8 +62,8 @@ node bin/archsvg.mjs render   architecture samples/order-system.architecture.jso
 产物既然是确定性生成的，「重渲染后与入库文件逐字节一致」就是最强的回归判据：
 
 ```bash
-cd /path/to/archsvg
-node bin/archsvg.mjs render architecture samples/order-system.architecture.json /tmp/check.svg --quality showcase
+cd /path/to/v2svg
+node bin/svg.mjs render architecture samples/order-system.architecture.json /tmp/check.svg --quality showcase
 cmp samples/order-system.svg /tmp/check.svg && echo "✅ 逐字节一致"
 ```
 

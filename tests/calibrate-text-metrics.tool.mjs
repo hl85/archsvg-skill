@@ -22,7 +22,7 @@ const CLASSES = {
   punct: '.,:;!?-_/()[]{}\'"+=<>',
 };
 
-// archsvg 实际用到的字号/字重组合。
+// v2svg 实际用到的字号/字重组合。
 const USED = [
   { name: 'nodeTitle', px: 16, weight: 700 },
   { name: 'nodeSub', px: 12, weight: 400 },
@@ -110,7 +110,7 @@ const data = await page.evaluate(({ CLASSES, USED, REAL }) => {
 
 await browser.close();
 
-console.log('# 实测每字符宽度（em，按 archsvg 实际字号/字重）\n');
+console.log('# 实测每字符宽度（em，按 v2svg 实际字号/字重）\n');
 const names = Object.keys(CLASSES);
 console.log(`| 场景 | px/w | ${names.join(' | ')} | space |`);
 console.log(`|:---|:---|${names.map(() => '---:').join('|')}|---:|`);

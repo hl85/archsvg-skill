@@ -1,4 +1,4 @@
-# archsvg 诊断与回执契约
+# v2svg 诊断与回执契约
 
 Diagnostic 对象、Check 对象、27 项检查逐项说明、退出码表、回执 JSON schema。
 
@@ -53,7 +53,7 @@ schema 层（`validateSchema`）产出的诊断。携带 `subject` / `evidence` 
 构图 12 项（8 项复用自研几何内核 `lib/geometry.mjs`，4 项为自研不变量）+ 文档集成专项 15 项。
 
 > 名清单的**唯一出处**是 `COMPOSITION_CHECK_NAMES` / `DOCUMENT_CHECK_NAMES` / `STANDARD_DOCUMENT_CHECK_NAMES`
-> （分别在两个 checks 模块里导出）。`archsvg doctor` 会断言本节各项数与代码一致。
+> （分别在两个 checks 模块里导出）。`svg doctor` 会断言本节各项数与代码一致。
 
 ### 3.1 构图 12 项
 
@@ -107,10 +107,10 @@ schema 层（`validateSchema`）产出的诊断。携带 `subject` / `evidence` 
 ### 3.4 文档口径断言（doctor 专项）
 
 同类系统的真实事故是「设计指南是实现的**手工拷贝**」：文件头写着「如需升级请同步修改另一份
-并重新拷贝」，于是两份必然漂移，而所有面向产物的检查都查不出来。archsvg 也出现过同类漂移
+并重新拷贝」，于是两份必然漂移，而所有面向产物的检查都查不出来。v2svg 也出现过同类漂移
 （本节曾写 `standard` 14 项而实际 13、`showcase 须 15/15` 而实际 17、阈值写 14px 而实际 15px）。
 
-因此 `archsvg doctor` 有一项 **「docs 常量 ↔ 代码常量」**，把文档里的数值变成可断言的契约：
+因此 `svg doctor` 有一项 **「docs 常量 ↔ 代码常量」**，把文档里的数值变成可断言的契约：
 
 | 断言对象 | 与谁比对 |
 |:---|:---|
@@ -120,7 +120,7 @@ schema 层（`validateSchema`）产出的诊断。携带 `subject` / `evidence` 
 | `README.md` 的档位口径与「N 项机械检查」 | 同上 |
 
 **找不到锚点按失败处理**（不允许静默跳过）：文档若被有意改写，必须同步更新
-`bin/archsvg.mjs` 里的锚点表。这是有意的摩擦 —— 否则断言会悄悄退化成永真。
+`bin/svg.mjs` 里的锚点表。这是有意的摩擦 —— 否则断言会悄悄退化成永真。
 
 ---
 

@@ -1,8 +1,8 @@
-// archsvg 分型路由（`archsvg guide` 的判据），独立成模块以便测试直接引用。
+// v2svg 分型路由（`svg guide` 的判据），独立成模块以便测试直接引用。
 //
-// 为什么单独一个文件：CLI 入口 `bin/archsvg.mjs` 末尾有 top-level await 的 main()，
+// 为什么单独一个文件：CLI 入口 `bin/svg.mjs` 末尾有 top-level await 的 main()，
 // 测试若静态 import 它会与 cmdTest 的动态 import 形成求值环 → 死锁。故把纯判据
-// 拆到这里，`bin/archsvg.mjs` 只负责 IO/打印，测试只 import 本模块。
+// 拆到这里，`bin/svg.mjs` 只负责 IO/打印，测试只 import 本模块。
 //
 // 分型路由分两步，先负向后正向：
 //   1) 负向回流表 REROUTE_RULES —— 命中即「建议不要用本管线」并给出替代方案。
@@ -29,35 +29,35 @@ export const REROUTE_RULES = [
     keywords: ['数据库', '表结构', '表设计', '建表', '数据表', '实体关系', 'er', 'erd', 'er图', 'schema', '字段', '主键', '外键', 'ddl', '范式'],
     target: 'mermaid `erDiagram`',
     reason: '实体的字段清单在 SVG 盒子里塞不下，且表结构随需求频繁改动，静态图很快过期',
-    alternative: '改用 mermaid `erDiagram`（或等价 ER 工具）承载实体与字段；只有要讲「谁读写谁」的数据流向时，才用 archsvg `flow` 另画一张',
+    alternative: '改用 mermaid `erDiagram`（或等价 ER 工具）承载实体与字段；只有要讲「谁读写谁」的数据流向时，才用 v2svg `flow` 另画一张',
   },
   {
     id: 'cyclic',
     keywords: ['循环', '闭环', '轮转', '环路', '环状', '回环', '周期性', '定时轮询', '心跳', '重试循环'],
-    target: '分阶段线性 + 回边（archsvg `flow`）或交互式 stepper',
+    target: '分阶段线性 + 回边（v2svg `flow`）或交互式 stepper',
     reason: '环形布局可读性差、节点文字被压缩，弧形连线还极易穿越无关节点',
-    alternative: '用 archsvg `flow` 把环拆成「阶段线性推进 + 一条回边」（回边由 Kahn 拓扑序识别、自动走左侧外侧通道）；若要逐帧演示推进过程，则交给交互式 stepper',
+    alternative: '用 v2svg `flow` 把环拆成「阶段线性推进 + 一条回边」（回边由 Kahn 拓扑序识别、自动走左侧外侧通道）；若要逐帧演示推进过程，则交给交互式 stepper',
   },
   {
     id: 'geo-map',
     keywords: ['地图', '地理', '区域分布', '省份', '省域', '国家', '城市分布', '经纬度', '行政区', '全国分布'],
     target: '外部地图工具 + 真实拓扑数据',
     reason: '禁止手搓坐标：地理形状必须来自真实拓扑数据，手绘坐标既不准也不可维护',
-    alternative: '用地图专用工具/组件（ECharts geo、AntV L7 等）并接入真实 GeoJSON 拓扑；archsvg 只负责与地理无关的结构图',
+    alternative: '用地图专用工具/组件（ECharts geo、AntV L7 等）并接入真实 GeoJSON 拓扑；v2svg 只负责与地理无关的结构图',
   },
   {
     id: 'data-chart',
     keywords: ['柱状图', '条形图', '折线', '折线图', '占比', '趋势', '饼图', '同比', '环比', '增长曲线', '散点', '面积图', '直方图', '图表'],
     target: '外部图表工具',
-    reason: 'archsvg 是结构图工具、不是数据图表工具：没有坐标轴 / 刻度 / 数值映射能力',
-    alternative: '用图表工具/组件（ECharts、Chart.js、Vega-Lite 等）画数据图；archsvg 只画结构关系',
+    reason: 'v2svg 是结构图工具、不是数据图表工具：没有坐标轴 / 刻度 / 数值映射能力',
+    alternative: '用图表工具/组件（ECharts、Chart.js、Vega-Lite 等）画数据图；v2svg 只画结构关系',
   },
   {
     id: 'data-table',
     keywords: ['参数表', '参数清单', '字段清单', '清单', '表格', '二维表', '对照表', '配置项'],
     target: 'Markdown 表格',
     reason: '结构化数据优先用表格：字段多、需要逐行对照时，图里的小盒子远不如表格可读',
-    alternative: '用 Markdown 表格（或表格组件）承载；只有当这些数据之间确实存在「结构关系」时，才回到 archsvg',
+    alternative: '用 Markdown 表格（或表格组件）承载；只有当这些数据之间确实存在「结构关系」时，才回到 v2svg',
   },
 ];
 
